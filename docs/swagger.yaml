@@ -63,59 +63,61 @@ paths:
       summary: user authentication
       tags:
       - auth
-  # /driver/sing-in:
-  #   post:
-  #     summary: driver authorization
-  #     requestBody:
-  #       required: true
-  #       content:
-  #         aplication/json:
-  #           schema:
-  #             type: object
-  #             properties:
-  #               phone_number: 
-  #                 type: string
-  #               password: 
-  #                 type: string
-  #     responses:
-  #       '200':
-  #         description: Access token
-  #         content:
-  #           aplication/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 access_token:
-  #                   type: integer
-  #                 refresh_token:
-  #                   type: string
-  #               example:
-  #                 access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzUxNjcyODksInVzZXJfaWQiOjF9.gCvkF6ZWJ5c_zA79ILuuEwvkrkn1kOU1Y-Mgr3K2NiM
-  #                 refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzc3NTc0OTcsInVzZXJfaWQiOjF9.H5s2JnmjUseUqWFYiLzfYWrlIfa-4dDtd3H2LS5R6IM
-  #       '400':
-  #         description: Incorrect input data
-  #         content:
-  #           aplication/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 error: 
-  #                   type: string
-  #       '403':
-  #         description: Wrong phone number or password
-  #         content:
-  #           aplication/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 error: 
-  #                   type: string
-  #       '500':
-  #         description: Unexpected server error
-  #         content:
-  #           aplication/json:
-  #             schema:
-  #               type: object
-  #               properties:
-  #                 error: 
-  #                   type: string
+  /driver/sing-in:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Authentication info
+        in: body
+        name: input
+        required: true
+        schema:
+          type: object
+          properties:
+            phone_number: 
+              type: string
+              required:
+                - "true"
+            password: 
+              type: string
+              required:
+                - "true"
+      produces:
+      - application/json
+      responses:
+        '200':
+          description: Access token
+          schema:
+            type: object
+            properties:
+              access_token:
+                type: integer
+              refresh_token:
+                type: string
+          examples:
+            type: object
+            properties:
+              access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzUxNjcyODksInVzZXJfaWQiOjF9.gCvkF6ZWJ5c_zA79ILuuEwvkrkn1kOU1Y-Mgr3K2NiM
+              refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzc3NTc0OTcsInVzZXJfaWQiOjF9.H5s2JnmjUseUqWFYiLzfYWrlIfa-4dDtd3H2LS5R6IM
+        '400':
+          description: Incorrect input data
+          schema:
+            type: object
+            properties:
+              error: 
+                type: string
+        '403':
+          description: Wrong phone number or password
+          schema:
+            type: object
+            properties:
+              error: 
+                type: string
+        '500':
+          description: Unexpected server error
+          schema:
+            type: object
+            properties:
+              error: 
+                type: string

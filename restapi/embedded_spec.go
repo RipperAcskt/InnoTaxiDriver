@@ -27,6 +27,97 @@ func init() {
     "version": "1.0"
   },
   "paths": {
+    "/driver/sing-in": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Authentication info",
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "required": [
+                    "true"
+                  ]
+                },
+                "phone_number": {
+                  "type": "string",
+                  "required": [
+                    "true"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Access token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "integer"
+                },
+                "refresh_token": {
+                  "type": "string"
+                }
+              }
+            },
+            "examples": {
+              "properties": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzUxNjcyODksInVzZXJfaWQiOjF9.gCvkF6ZWJ5c_zA79ILuuEwvkrkn1kOU1Y-Mgr3K2NiM",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzc3NTc0OTcsInVzZXJfaWQiOjF9.H5s2JnmjUseUqWFYiLzfYWrlIfa-4dDtd3H2LS5R6IM"
+              },
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Incorrect input data",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Wrong phone number or password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/driver/sing-up": {
       "post": {
         "consumes": [
@@ -131,6 +222,97 @@ func init() {
     "version": "1.0"
   },
   "paths": {
+    "/driver/sing-in": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "description": "Authentication info",
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "password": {
+                  "type": "string",
+                  "required": [
+                    "true"
+                  ]
+                },
+                "phone_number": {
+                  "type": "string",
+                  "required": [
+                    "true"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Access token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "integer"
+                },
+                "refresh_token": {
+                  "type": "string"
+                }
+              }
+            },
+            "examples": {
+              "properties": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzUxNjcyODksInVzZXJfaWQiOjF9.gCvkF6ZWJ5c_zA79ILuuEwvkrkn1kOU1Y-Mgr3K2NiM",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzc3NTc0OTcsInVzZXJfaWQiOjF9.H5s2JnmjUseUqWFYiLzfYWrlIfa-4dDtd3H2LS5R6IM"
+              },
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Incorrect input data",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Wrong phone number or password",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/driver/sing-up": {
       "post": {
         "consumes": [

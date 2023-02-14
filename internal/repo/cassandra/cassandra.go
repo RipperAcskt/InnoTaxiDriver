@@ -2,6 +2,7 @@ package cassandra
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
@@ -56,7 +57,7 @@ func (c *Cassandra) CreateDriver(driver auth.PostDriverSingUpBody) error {
 
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (name, phone_number, email, password, rating, status) VALUES(?, ?, ?, ?, 0.0, ?)", driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), service.StatusCreated).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, rating, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), service.StatusCreated).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}

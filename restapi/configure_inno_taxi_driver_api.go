@@ -12,6 +12,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
+	grpc "github.com/RipperAcskt/innotaxidriver/internal/grpc"
 	"github.com/RipperAcskt/innotaxidriver/internal/handler"
 	"github.com/RipperAcskt/innotaxidriver/internal/repo/cassandra"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
@@ -40,10 +41,16 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 		log.Fatalf("cassandra new failed: %v", err)
 	}
 
-	service := service.New(cassandra, cfg)
+	client, err := grpc.New(cfg)
+	if err != nil {
+		log.Fatalf("grpc new failed: %v", err)
+	}
+
+	service := service.New(cassandra, client, cfg)
 	handler := handler.New(service, cfg)
 
 	api.AuthPostDriverSingUpHandler = auth.PostDriverSingUpHandlerFunc(handler.SingUp)
+	api.AuthPostDriverSingInHandler = auth.PostDriverSingInHandlerFunc(handler.SingIn)
 
 	api.JSONConsumer = runtime.JSONConsumer()
 

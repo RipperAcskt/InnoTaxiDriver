@@ -20,7 +20,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 
 	err := h.s.CreateDriver(driver)
 	if err != nil {
-		if errors.Is(err, service.ErrUserAlreadyExists) {
+		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := auth.PostDriverSingUpBadRequestBody{
 				Error: err.Error(),
 			}
@@ -39,10 +39,15 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 	return auth.NewPostDriverSingUpCreated().WithPayload(&body)
 }
 
-func (h *Handler) SingIn(user auth.PostDriverSingUpParams) middleware.Responder {
-	err := h.s.CreateDriver(user.Input)
+func (h *Handler) SingIn(d auth.PostDriverSingInParams) middleware.Responder {
+	driver := model.Driver{
+		PhoneNumber: d.Input.PhoneNumber,
+		Password:    d.Input.Password,
+	}
+
+	err := h.s.SingIn(driver)
 	if err != nil {
-		if errors.Is(err, service.ErrUserAlreadyExists) {
+		if errors.Is(err, service.ErrIncorrectPassword) {
 			body := auth.PostDriverSingUpBadRequestBody{
 				Error: err.Error(),
 			}
@@ -50,13 +55,13 @@ func (h *Handler) SingIn(user auth.PostDriverSingUpParams) middleware.Responder 
 		}
 
 		body := auth.PostDriverSingUpInternalServerErrorBody{
-			Error: fmt.Errorf("create driver failed: %v", err).Error(),
+			Error: fmt.Errorf("sing in failed: %v", err).Error(),
 		}
 		return auth.NewPostDriverSingUpInternalServerError().WithPayload(&body)
 	}
 
 	body := auth.PostDriverSingUpCreatedBody{
-		Status: service.StatusCreated,
+		Status: model.StatusCreated,
 	}
 	return auth.NewPostDriverSingUpCreated().WithPayload(&body)
 }

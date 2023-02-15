@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
-	"github.com/RipperAcskt/innotaxidriver/internal/service"
+	pb "github.com/RipperAcskt/innotaxidriver/internal/proto"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
 type Client struct {
-	client service.AuthServiceClient
+	client pb.AuthServiceClient
 	cfg    *config.Config
 }
 
@@ -29,13 +29,13 @@ func New(cfg *config.Config) (*Client, error) {
 
 	defer conn.Close()
 
-	client := service.NewAuthServiceClient(conn)
+	client := pb.NewAuthServiceClient(conn)
 
 	return &Client{client, cfg}, nil
 }
 
 func (c *Client) GetJWT(id uuid.UUID) error {
-	request := &service.Params{
+	request := &pb.Params{
 		DriverID: id.String(),
 		Type:     "driver",
 	}

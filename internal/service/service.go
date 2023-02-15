@@ -2,14 +2,15 @@ package service
 
 import (
 	"github.com/RipperAcskt/innotaxidriver/config"
+	grpc "github.com/RipperAcskt/innotaxidriver/internal/grpc"
 )
 
 type Service struct {
 	*AuthService
 }
 
-func New(cassandra AuthRepo, cfg *config.Config) *Service {
+func New(cassandra AuthRepo, client *grpc.Client, cfg *config.Config) *Service {
 	return &Service{
-		AuthService: NewAuthSevice(cassandra, cfg),
+		AuthService: NewAuthSevice(cassandra, client, cfg),
 	}
 }

@@ -18,7 +18,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 		Password:    d.Input.Password,
 	}
 
-	err := h.s.CreateDriver(driver)
+	err := h.s.SingUp(driver)
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := auth.PostDriverSingUpBadRequestBody{

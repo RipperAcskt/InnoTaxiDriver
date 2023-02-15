@@ -14,7 +14,8 @@ type Config struct {
 
 	MIGRATE_PATH string `mapstructure:"MIGRATE_PATH"`
 
-	SALT string `mapstructure:"SALT"`
+	SALT      string `mapstructure:"SALT"`
+	GRPC_HOST string `mapstructure:"GRPC_HOST"`
 }
 
 func New() (*Config, error) {

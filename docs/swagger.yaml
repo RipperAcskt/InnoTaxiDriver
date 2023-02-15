@@ -121,3 +121,5 @@ paths:
             properties:
               error: 
                 type: string
+      tags:
+      - auth

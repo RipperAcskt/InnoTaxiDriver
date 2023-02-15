@@ -35,6 +35,9 @@ func init() {
         "produces": [
           "application/json"
         ],
+        "tags": [
+          "auth"
+        ],
         "parameters": [
           {
             "description": "Authentication info",
@@ -229,6 +232,9 @@ func init() {
         ],
         "produces": [
           "application/json"
+        ],
+        "tags": [
+          "auth"
         ],
         "parameters": [
           {

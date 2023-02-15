@@ -1,6 +1,7 @@
 package cassandra
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -62,4 +63,23 @@ func (c *Cassandra) CreateDriver(driver auth.PostDriverSingUpBody) error {
 		return fmt.Errorf("exec failed: %w", err)
 	}
 	return nil
+}
+
+func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*auth.PostDriverSingIn, error) {
+
+	row := c.session.Query("SELECT id, phone_number, password FROM users WHERE phone_number = ? AND status = ?", phone_number, service.StatusCreated)
+
+	var user service.UserSingIn
+
+	err := row.Scan(&user.ID, &user.PhoneNumber, &user.Password)
+	if err != nil {
+
+		if err == sql.ErrNoRows {
+			return nil, service.ErrUserDoesNotExists
+		}
+
+		return nil, fmt.Errorf("scan failed: %w", err)
+	}
+
+	return &user, nil
 }

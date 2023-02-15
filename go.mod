@@ -12,6 +12,7 @@ require (
 	github.com/go-openapi/validate v0.22.1
 	github.com/gocql/gocql v1.3.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
+	github.com/google/uuid v1.3.0
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/spf13/viper v1.15.0
 	golang.org/x/net v0.6.0

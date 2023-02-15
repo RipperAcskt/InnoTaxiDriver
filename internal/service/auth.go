@@ -5,17 +5,15 @@ import (
 	"fmt"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
-	"github.com/RipperAcskt/innotaxidriver/restapi/operations/auth"
+	"github.com/RipperAcskt/innotaxidriver/internal/model"
 )
 
 var (
 	ErrUserAlreadyExists = fmt.Errorf("user alredy exists")
-
-	StatusCreated = "created"
 )
 
 type AuthRepo interface {
-	CreateDriver(driver auth.PostDriverSingUpBody) error
+	CreateDriver(driver model.Driver) error
 }
 
 type AuthService struct {
@@ -27,7 +25,7 @@ func NewAuthSevice(cassandra AuthRepo, cfg *config.Config) *AuthService {
 	return &AuthService{cassandra, cfg}
 }
 
-func (s *AuthService) SingUp(driver auth.PostDriverSingUpBody) error {
+func (s *AuthService) SingUp(driver model.Driver) error {
 	var err error
 	driver.Password, err = s.GenerateHash(driver.Password)
 	if err != nil {

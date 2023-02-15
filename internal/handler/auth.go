@@ -4,13 +4,21 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations/auth"
 	"github.com/go-openapi/runtime/middleware"
 )
 
-func (h *Handler) SingUp(user auth.PostDriverSingUpParams) middleware.Responder {
-	err := h.s.CreateDriver(user.Input)
+func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
+	driver := model.Driver{
+		Name:        d.Input.Name,
+		PhoneNumber: d.Input.PhoneNumber,
+		Email:       d.Input.Email,
+		Password:    d.Input.Password,
+	}
+
+	err := h.s.CreateDriver(driver)
 	if err != nil {
 		if errors.Is(err, service.ErrUserAlreadyExists) {
 			body := auth.PostDriverSingUpBadRequestBody{
@@ -26,7 +34,7 @@ func (h *Handler) SingUp(user auth.PostDriverSingUpParams) middleware.Responder 
 	}
 
 	body := auth.PostDriverSingUpCreatedBody{
-		Status: service.StatusCreated,
+		Status: model.StatusCreated,
 	}
 	return auth.NewPostDriverSingUpCreated().WithPayload(&body)
 }

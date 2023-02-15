@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
+	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
-	"github.com/RipperAcskt/innotaxidriver/restapi/operations/auth"
 
 	"github.com/gocql/gocql"
 	"github.com/golang-migrate/migrate/v4"
@@ -49,15 +49,15 @@ func (c *Cassandra) Close() {
 	c.session.Close()
 }
 
-func (c *Cassandra) CreateDriver(driver auth.PostDriverSingUpBody) error {
+func (c *Cassandra) CreateDriver(driver model.Driver) error {
 	var name string
-	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE (phone_number = ? OR email = ?) AND status = ?", driver.PhoneNumber, driver.Email, service.StatusCreated).Scan(&name)
+	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE (phone_number = ? OR email = ?) AND status = ?", driver.PhoneNumber, driver.Email, model.StatusCreated).Scan(&name)
 	if err == nil {
 		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrUserAlreadyExists)
 
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, rating, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), service.StatusCreated).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, rating, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}

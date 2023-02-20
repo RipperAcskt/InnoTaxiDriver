@@ -72,7 +72,6 @@ func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, 
 	err := c.session.Query("SELECT id, phone_number, password FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", phone_number, model.StatusCreated).Scan(&id, &driver.PhoneNumber, &driver.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Println(err)
 			return nil, service.ErrDriverDoesNotExists
 		}
 

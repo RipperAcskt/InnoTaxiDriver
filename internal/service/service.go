@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/RipperAcskt/innotaxidriver/config"
-	grpc "github.com/RipperAcskt/innotaxidriver/internal/grpc"
+	"github.com/RipperAcskt/innotaxidriver/internal/handler/grpc"
 )
 
 type Service struct {

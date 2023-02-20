@@ -16,6 +16,8 @@ type Config struct {
 
 	SALT      string `mapstructure:"SALT"`
 	GRPC_HOST string `mapstructure:"GRPC_HOST"`
+
+	HS256_SECRET string `mapstructure:"HS256_SECRET"`
 }
 
 func New() (*Config, error) {

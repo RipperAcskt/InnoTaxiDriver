@@ -12,8 +12,8 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
-	grpc "github.com/RipperAcskt/innotaxidriver/internal/grpc"
-	"github.com/RipperAcskt/innotaxidriver/internal/handler"
+	"github.com/RipperAcskt/innotaxidriver/internal/handler/grpc"
+	handler "github.com/RipperAcskt/innotaxidriver/internal/handler/restapi"
 	"github.com/RipperAcskt/innotaxidriver/internal/repo/cassandra"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations"
@@ -51,6 +51,9 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 
 	api.AuthPostDriverSingUpHandler = auth.PostDriverSingUpHandlerFunc(handler.SingUp)
 	api.AuthPostDriverSingInHandler = auth.PostDriverSingInHandlerFunc(handler.SingIn)
+	api.AuthPostDriverRefreshHandler = auth.PostDriverRefreshHandlerFunc(handler.Refresh)
+
+	api.AddMiddlewareFor("POST", "/driver/refresh", handler.VerifyToken)
 
 	api.JSONConsumer = runtime.JSONConsumer()
 

@@ -1,11 +1,11 @@
-package grpc_client
+package grpc
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
-	pb "github.com/RipperAcskt/innotaxidriver/internal/proto"
+	pb "github.com/RipperAcskt/innotaxidriver/pkg/proto"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -13,7 +13,13 @@ import (
 
 type Client struct {
 	client pb.AuthServiceClient
+	conn   *grpc.ClientConn
 	cfg    *config.Config
+}
+
+type Token struct {
+	AccessToken  string
+	RefreshToken string
 }
 
 func New(cfg *config.Config) (*Client, error) {
@@ -27,22 +33,23 @@ func New(cfg *config.Config) (*Client, error) {
 		return nil, fmt.Errorf("dial failed: %w", err)
 	}
 
-	defer conn.Close()
-
 	client := pb.NewAuthServiceClient(conn)
 
-	return &Client{client, cfg}, nil
+	return &Client{client, conn, cfg}, nil
 }
 
-func (c *Client) GetJWT(id uuid.UUID) error {
+func (c *Client) GetJWT(id uuid.UUID) (*Token, error) {
 	request := &pb.Params{
 		DriverID: id.String(),
 		Type:     "driver",
 	}
 	response, err := c.client.GetJWT(context.Background(), request)
 	if err != nil {
-		return fmt.Errorf("get jwt failed: %w", err)
+		return nil, fmt.Errorf("get jwt failed: %w", err)
 	}
-	fmt.Println(response)
-	return nil
+	return &Token{response.AccessToken, response.RefreshToken}, nil
+}
+
+func (c *Client) Close() error {
+	return c.conn.Close()
 }

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS innotaxi.drivers(
     phone_number text,
     email text,
     password BLOB,
-    rating float,
+    raiting float,
     status text,
     PRIMARY KEY((email))
 );

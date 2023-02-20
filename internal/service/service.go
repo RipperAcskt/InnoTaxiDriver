@@ -5,12 +5,19 @@ import (
 	"github.com/RipperAcskt/innotaxidriver/internal/handler/grpc"
 )
 
-type Service struct {
-	*AuthService
+type Repo interface {
+	UserRepo
+	AuthRepo
 }
 
-func New(cassandra AuthRepo, client *grpc.Client, cfg *config.Config) *Service {
+type Service struct {
+	*AuthService
+	*UserService
+}
+
+func New(cassandra Repo, client *grpc.Client, cfg *config.Config) *Service {
 	return &Service{
 		AuthService: NewAuthSevice(cassandra, client, cfg),
+		UserService: NewUserSevice(cassandra, cfg),
 	}
 }

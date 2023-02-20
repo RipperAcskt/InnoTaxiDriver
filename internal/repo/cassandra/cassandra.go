@@ -18,7 +18,7 @@ import (
 
 type Cassandra struct {
 	session *gocql.Session
-	m       *migrate.Migrate
+	Migrate *migrate.Migrate
 	cfg     *config.Config
 }
 
@@ -39,7 +39,7 @@ func New(cfg *config.Config) (*Cassandra, error) {
 		return nil, fmt.Errorf("with instance failed: %w", err)
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(cfg.MIGRATE_PATH, "postgres", driver)
+	m, err := migrate.NewWithDatabaseInstance(cfg.MIGRATE_PATH, "cassandra", driver)
 	if err != nil {
 		return nil, fmt.Errorf("new with database instance failed: %w", err)
 	}
@@ -59,7 +59,7 @@ func (c *Cassandra) CreateDriver(driver model.Driver) error {
 
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, rating, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}
@@ -79,4 +79,18 @@ func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, 
 	}
 	driver.ID = uuid.UUID(id)
 	return &driver, nil
+}
+
+func (c *Cassandra) GetUserById(id string) (*model.Driver, error) {
+	driver := &model.Driver{}
+	var driverID gocql.UUID
+	err := c.session.Query("SELECT id, name, phone_number, email, raiting FROM innotaxi.drivers WHERE id = ? AND status = ? ALLOW FILTERING", id, model.StatusCreated).Scan(&driverID, &driver.Name, &driver.PhoneNumber, &driver.Email, &driver.Raiting)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, service.ErrDriverDoesNotExists
+		}
+		return nil, fmt.Errorf("query row context failed: %w", err)
+	}
+	driver.ID = uuid.UUID(driverID)
+	return driver, err
 }

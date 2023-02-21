@@ -98,7 +98,7 @@ func (c *Cassandra) UpdateDriverById(driver model.Driver) error {
 	}
 	r += "WHERE id = ?"
 	val = append(val, driver.ID.String())
-	fmt.Println(r)
+
 	err := c.session.Query(r, val...).Exec()
 	if err != nil {
 		return fmt.Errorf("exec context failed: %w", err)

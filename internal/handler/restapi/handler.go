@@ -1,8 +1,15 @@
 package handler
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/RipperAcskt/innotaxidriver/config"
+	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
+	"github.com/RipperAcskt/innotaxidriver/restapi/operations/driver"
+	"github.com/go-openapi/runtime/middleware"
+	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -12,4 +19,30 @@ type Handler struct {
 
 func New(s *service.Service, cfg *config.Config) *Handler {
 	return &Handler{s, cfg}
+}
+
+func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
+	id := d.HTTPRequest.Header.Get("id")
+	dr := model.Driver{
+		ID:          uuid.MustParse(id),
+		Name:        d.Input.Name,
+		PhoneNumber: d.Input.PhoneNumber,
+		Email:       d.Input.Email,
+	}
+
+	err := h.s.UpdateProfile(dr)
+	if err != nil {
+		if errors.Is(err, service.ErrDriverDoesNotExists) {
+			body := driver.PutDriverBadRequestBody{
+				Error: err.Error(),
+			}
+			return driver.NewPutDriverBadRequest().WithPayload(&body)
+		}
+
+		body := driver.PutDriverInternalServerErrorBody{
+			Error: fmt.Errorf("get profile failed: %w", err).Error(),
+		}
+		return driver.NewPutDriverInternalServerError().WithPayload(&body)
+	}
+	return driver.NewPutDriverOK()
 }

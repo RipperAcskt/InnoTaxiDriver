@@ -20,6 +20,7 @@ import (
 	"github.com/go-openapi/swag"
 
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations/auth"
+	"github.com/RipperAcskt/innotaxidriver/restapi/operations/driver"
 )
 
 // NewInnoTaxiDriverAPIAPI creates a new InnoTaxiDriverAPI instance
@@ -52,6 +53,9 @@ func NewInnoTaxiDriverAPIAPI(spec *loads.Document) *InnoTaxiDriverAPIAPI {
 		}),
 		AuthPostDriverSingUpHandler: auth.PostDriverSingUpHandlerFunc(func(params auth.PostDriverSingUpParams) middleware.Responder {
 			return middleware.NotImplemented("operation auth.PostDriverSingUp has not yet been implemented")
+		}),
+		DriverPutDriverHandler: driver.PutDriverHandlerFunc(func(params driver.PutDriverParams) middleware.Responder {
+			return middleware.NotImplemented("operation driver.PutDriver has not yet been implemented")
 		}),
 	}
 }
@@ -95,6 +99,8 @@ type InnoTaxiDriverAPIAPI struct {
 	AuthPostDriverSingInHandler auth.PostDriverSingInHandler
 	// AuthPostDriverSingUpHandler sets the operation handler for the post driver sing up operation
 	AuthPostDriverSingUpHandler auth.PostDriverSingUpHandler
+	// DriverPutDriverHandler sets the operation handler for the put driver operation
+	DriverPutDriverHandler driver.PutDriverHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -180,6 +186,9 @@ func (o *InnoTaxiDriverAPIAPI) Validate() error {
 	}
 	if o.AuthPostDriverSingUpHandler == nil {
 		unregistered = append(unregistered, "auth.PostDriverSingUpHandler")
+	}
+	if o.DriverPutDriverHandler == nil {
+		unregistered = append(unregistered, "driver.PutDriverHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -281,6 +290,10 @@ func (o *InnoTaxiDriverAPIAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/driver/sing-up"] = auth.NewPostDriverSingUp(o.context, o.AuthPostDriverSingUpHandler)
+	if o.handlers["PUT"] == nil {
+		o.handlers["PUT"] = make(map[string]http.Handler)
+	}
+	o.handlers["PUT"]["/driver"] = driver.NewPutDriver(o.context, o.DriverPutDriverHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

@@ -85,7 +85,7 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 		}
 		accessToken := token[1]
 
-		_, err := service.Verify(accessToken, h.Cfg)
+		id, err := service.Verify(accessToken, h.Cfg)
 		if err != nil {
 			if strings.Contains(err.Error(), "Token is expired") {
 				rw.WriteHeader(http.StatusUnauthorized)
@@ -108,7 +108,7 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 			rw.Write(jsonResp)
 			return
 		}
-
+		r.Header.Add("id", id)
 		handler.ServeHTTP(rw, r)
 
 	})

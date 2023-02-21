@@ -59,7 +59,7 @@ func (c *Cassandra) CreateDriver(driver model.Driver) error {
 
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, rating, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}
@@ -79,4 +79,29 @@ func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, 
 	}
 	driver.ID = uuid.UUID(id)
 	return &driver, nil
+}
+
+func (c *Cassandra) UpdateDriverById(driver model.Driver) error {
+	r := "UPDATE innotaxi.drivers SET "
+	var val []any
+	if driver.Name != "" {
+		r += "name = ? "
+		val = append(val, driver.Name)
+	}
+	if driver.PhoneNumber != "" {
+		r += "phone_number = ? "
+		val = append(val, driver.PhoneNumber)
+	}
+	if driver.Email != "" {
+		r += "email = ? "
+		val = append(val, driver.Email)
+	}
+	r += "WHERE id = ?"
+	val = append(val, driver.ID.String())
+	fmt.Println(r)
+	err := c.session.Query(r, val...).Exec()
+	if err != nil {
+		return fmt.Errorf("exec context failed: %w", err)
+	}
+	return nil
 }

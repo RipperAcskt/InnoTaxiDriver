@@ -18,6 +18,7 @@ import (
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations"
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations/auth"
+	"github.com/RipperAcskt/innotaxidriver/restapi/operations/driver"
 )
 
 //go:generate swagger generate server --target ../../InnoTaxiDriver --name InnoTaxiDriverAPI --spec ../docs/swagger.yaml --principal interface{} --default-scheme gin-swwagger
@@ -53,7 +54,10 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 	api.AuthPostDriverSingInHandler = auth.PostDriverSingInHandlerFunc(handler.SingIn)
 	api.AuthPostDriverRefreshHandler = auth.PostDriverRefreshHandlerFunc(handler.Refresh)
 
+	api.DriverDeleteDriverHandler = driver.DeleteDriverHandlerFunc(handler.DeleteProfile)
+
 	api.AddMiddlewareFor("POST", "/driver/refresh", handler.VerifyToken)
+	api.AddMiddlewareFor("DELETE", "/driver", handler.VerifyToken)
 
 	api.JSONConsumer = runtime.JSONConsumer()
 

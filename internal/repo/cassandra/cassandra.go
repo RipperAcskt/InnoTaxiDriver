@@ -80,3 +80,11 @@ func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, 
 	driver.ID = uuid.UUID(id)
 	return &driver, nil
 }
+
+func (c *Cassandra) DeleteDriverById(id string) error {
+	err := c.session.Query("UPDATE innotaxi.drivers SET status = ? WHERE id = ?", model.StatusDeleted, id).Exec()
+	if err != nil {
+		return fmt.Errorf("exec context failed: %w", err)
+	}
+	return nil
+}

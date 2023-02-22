@@ -87,14 +87,14 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 
 		_, err := service.Verify(accessToken, h.Cfg)
 		if err != nil {
-			if strings.Contains(err.Error(), "Token is expired") {
+			if errors.Is(err, jwt.ValidationError{Errors: jwt.ValidationErrorExpired}) {
 				rw.WriteHeader(http.StatusUnauthorized)
 				resp["error"] = err.Error()
 				jsonResp, _ := json.Marshal(resp)
 				rw.Write(jsonResp)
 				return
 			}
-			if strings.Contains(err.Error(), jwt.ErrSignatureInvalid.Error()) {
+			if errors.Is(err, jwt.ErrSignatureInvalid) {
 				rw.WriteHeader(http.StatusForbidden)
 				resp["error"] = fmt.Errorf("wrong signature").Error()
 				jsonResp, _ := json.Marshal(resp)

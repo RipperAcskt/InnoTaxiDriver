@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
-	grpc "github.com/RipperAcskt/innotaxidriver/internal/gateway"
+	"github.com/RipperAcskt/innotaxidriver/internal/client"
 	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 var (
@@ -23,13 +24,17 @@ type AuthRepo interface {
 	CheckUserByPhoneNumber(phone_number string) (*model.Driver, error)
 }
 
+type AuthorizationSerivce interface {
+	GetJWT(id uuid.UUID) (*client.Token, error)
+}
+
 type AuthService struct {
 	AuthRepo
-	client *grpc.Client
+	client AuthorizationSerivce
 	cfg    *config.Config
 }
 
-func NewAuthSevice(cassandra AuthRepo, client *grpc.Client, cfg *config.Config) *AuthService {
+func NewAuthSevice(cassandra AuthRepo, client AuthorizationSerivce, cfg *config.Config) *AuthService {
 	return &AuthService{cassandra, client, cfg}
 }
 
@@ -56,7 +61,7 @@ func (s *AuthService) GenerateHash(password string) (string, error) {
 	return string(hash.Sum([]byte(s.cfg.SALT))), nil
 }
 
-func (s *AuthService) SingIn(driver model.Driver) (*grpc.Token, error) {
+func (s *AuthService) SingIn(driver model.Driver) (*client.Token, error) {
 	driverDB, err := s.CheckUserByPhoneNumber(driver.PhoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("check user by phone number failed: %w", err)
@@ -103,7 +108,7 @@ func Verify(token string, cfg *config.Config) (string, error) {
 	return string(claims["user_id"].(string)), nil
 }
 
-func (s *AuthService) Refresh(driver model.Driver) (*grpc.Token, error) {
+func (s *AuthService) Refresh(driver model.Driver) (*client.Token, error) {
 	token, err := s.client.GetJWT(driver.ID)
 	if err != nil {
 		return nil, fmt.Errorf("get jwt failed: %w", err)

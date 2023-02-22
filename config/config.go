@@ -14,8 +14,8 @@ type Config struct {
 
 	MIGRATE_PATH string `mapstructure:"MIGRATE_PATH"`
 
-	SALT      string `mapstructure:"SALT"`
-	GRPC_HOST string `mapstructure:"GRPC_HOST"`
+	SALT           string `mapstructure:"SALT"`
+	GRPC_AUTH_HOST string `mapstructure:"GRPC_AUTH_HOST"`
 
 	HS256_SECRET string `mapstructure:"HS256_SECRET"`
 }

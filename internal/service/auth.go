@@ -17,6 +17,8 @@ var (
 	ErrDriverDoesNotExists = fmt.Errorf("driver does not exist")
 	ErrIncorrectPassword   = fmt.Errorf("incorrect password")
 	ErrTokenExpired        = fmt.Errorf("token expired")
+	ErrTokenClaims         = fmt.Errorf("jwt map claims failed")
+	ErrTokenId             = fmt.Errorf("jwt get user id failed failed")
 )
 
 type AuthRepo interface {
@@ -99,11 +101,15 @@ func Verify(token string, cfg *config.Config) (string, error) {
 
 	claims, ok := tokenJwt.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", fmt.Errorf("jwt map claims failed")
+		return "", ErrTokenClaims
 	}
 
 	if !claims.VerifyExpiresAt(time.Now().UTC().Unix(), true) {
 		return "", ErrTokenExpired
+	}
+
+	if claims["user_id"] == "" {
+		return "", ErrTokenId
 	}
 	return string(claims["user_id"].(string)), nil
 }

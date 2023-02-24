@@ -8,7 +8,7 @@ type Service struct {
 	*AuthService
 }
 
-func New(cassandra AuthRepo, client AuthorizationSerivce, cfg *config.Config) *Service {
+func New(cassandra AuthRepo, client UserSerivce, cfg *config.Config) *Service {
 	return &Service{
 		AuthService: NewAuthSevice(cassandra, client, cfg),
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
+	user "github.com/RipperAcskt/innotaxidriver/internal/client"
 	"github.com/RipperAcskt/innotaxidriver/internal/handler"
 	"github.com/RipperAcskt/innotaxidriver/internal/repo/cassandra"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
@@ -46,7 +47,17 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 		log.Fatalf("migrate up failed: %v", err)
 	}
 
-	service := service.New(cassandra, cfg)
+	err = cassandra.M.Up()
+	if err != migrate.ErrNoChange && err != nil {
+		log.Fatalf("migrate up failed: %v", err)
+	}
+
+	client, err := user.New(cfg)
+	if err != nil {
+		log.Fatalf("grpc new failed: %v", err)
+	}
+
+	service := service.New(cassandra, client, cfg)
 	handler := handler.New(service, cfg)
 
 	api.AuthPostDriverSingUpHandler = auth.PostDriverSingUpHandlerFunc(handler.SingUp)

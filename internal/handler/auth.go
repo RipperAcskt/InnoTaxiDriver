@@ -155,7 +155,7 @@ func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Respond
 			}
 			return auth.NewPostDriverRefreshUnauthorized().WithPayload(&body)
 		}
-		if strings.Contains(err.Error(), jwt.ErrSignatureInvalid.Error()) {
+		if errors.Is(err, jwt.ErrSignatureInvalid) {
 			body := auth.PostDriverRefreshForbiddenBody{
 				Error: err.Error(),
 			}

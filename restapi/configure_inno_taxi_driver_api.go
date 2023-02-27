@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
-	"github.com/RipperAcskt/innotaxidriver/internal/client"
+	user "github.com/RipperAcskt/innotaxidriver/internal/client"
 	"github.com/RipperAcskt/innotaxidriver/internal/handler"
 	"github.com/RipperAcskt/innotaxidriver/internal/repo/cassandra"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
@@ -41,7 +41,7 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 		log.Fatalf("cassandra new failed: %v", err)
 	}
 
-	client, err := client.New(cfg)
+	client, err := user.New(cfg)
 	if err != nil {
 		log.Fatalf("grpc new failed: %v", err)
 	}

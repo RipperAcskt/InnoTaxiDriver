@@ -44,8 +44,11 @@ func NewInnoTaxiDriverAPIAPI(spec *loads.Document) *InnoTaxiDriverAPIAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
-		PostDriverSingInHandler: PostDriverSingInHandlerFunc(func(params PostDriverSingInParams) middleware.Responder {
-			return middleware.NotImplemented("operation PostDriverSingIn has not yet been implemented")
+		AuthPostDriverRefreshHandler: auth.PostDriverRefreshHandlerFunc(func(params auth.PostDriverRefreshParams) middleware.Responder {
+			return middleware.NotImplemented("operation auth.PostDriverRefresh has not yet been implemented")
+		}),
+		AuthPostDriverSingInHandler: auth.PostDriverSingInHandlerFunc(func(params auth.PostDriverSingInParams) middleware.Responder {
+			return middleware.NotImplemented("operation auth.PostDriverSingIn has not yet been implemented")
 		}),
 		AuthPostDriverSingUpHandler: auth.PostDriverSingUpHandlerFunc(func(params auth.PostDriverSingUpParams) middleware.Responder {
 			return middleware.NotImplemented("operation auth.PostDriverSingUp has not yet been implemented")
@@ -86,8 +89,10 @@ type InnoTaxiDriverAPIAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
-	// PostDriverSingInHandler sets the operation handler for the post driver sing in operation
-	PostDriverSingInHandler PostDriverSingInHandler
+	// AuthPostDriverRefreshHandler sets the operation handler for the post driver refresh operation
+	AuthPostDriverRefreshHandler auth.PostDriverRefreshHandler
+	// AuthPostDriverSingInHandler sets the operation handler for the post driver sing in operation
+	AuthPostDriverSingInHandler auth.PostDriverSingInHandler
 	// AuthPostDriverSingUpHandler sets the operation handler for the post driver sing up operation
 	AuthPostDriverSingUpHandler auth.PostDriverSingUpHandler
 
@@ -167,8 +172,11 @@ func (o *InnoTaxiDriverAPIAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
-	if o.PostDriverSingInHandler == nil {
-		unregistered = append(unregistered, "PostDriverSingInHandler")
+	if o.AuthPostDriverRefreshHandler == nil {
+		unregistered = append(unregistered, "auth.PostDriverRefreshHandler")
+	}
+	if o.AuthPostDriverSingInHandler == nil {
+		unregistered = append(unregistered, "auth.PostDriverSingInHandler")
 	}
 	if o.AuthPostDriverSingUpHandler == nil {
 		unregistered = append(unregistered, "auth.PostDriverSingUpHandler")
@@ -264,7 +272,11 @@ func (o *InnoTaxiDriverAPIAPI) initHandlerCache() {
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/driver/sing-in"] = NewPostDriverSingIn(o.context, o.PostDriverSingInHandler)
+	o.handlers["POST"]["/driver/refresh"] = auth.NewPostDriverRefresh(o.context, o.AuthPostDriverRefreshHandler)
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/driver/sing-in"] = auth.NewPostDriverSingIn(o.context, o.AuthPostDriverSingInHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

@@ -1,13 +1,18 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
 
 	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations/auth"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
@@ -20,7 +25,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 
 	err := h.s.SingUp(driver)
 	if err != nil {
-		if errors.Is(err, service.ErrUserAlreadyExists) {
+		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := auth.PostDriverSingUpBadRequestBody{
 				Error: err.Error(),
 			}
@@ -37,4 +42,154 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 		Status: model.StatusCreated,
 	}
 	return auth.NewPostDriverSingUpCreated().WithPayload(&body)
+}
+
+func (h *Handler) SingIn(d auth.PostDriverSingInParams) middleware.Responder {
+	driver := model.Driver{
+		PhoneNumber: d.Input.PhoneNumber,
+		Password:    d.Input.Password,
+	}
+
+	token, err := h.s.SingIn(driver)
+	if err != nil {
+		if errors.Is(err, service.ErrIncorrectPassword) {
+			body := auth.PostDriverSingInForbiddenBody{
+				Error: err.Error(),
+			}
+			return auth.NewPostDriverSingInForbidden().WithPayload(&body)
+		}
+
+		body := auth.PostDriverSingInInternalServerErrorBody{
+			Error: fmt.Errorf("sing in failed: %v", err).Error(),
+		}
+		return auth.NewPostDriverSingInInternalServerError().WithPayload(&body)
+	}
+
+	body := auth.PostDriverSingInOKBody{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+	}
+	return auth.NewPostDriverSingInOK().WithPayload(&body)
+}
+
+func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
+	resp := make(map[string]string)
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		token := strings.Split(r.Header.Get("Authorization"), " ")
+		if len(token) < 2 {
+			rw.WriteHeader(http.StatusUnauthorized)
+			resp["error"] = fmt.Errorf("access token required").Error()
+			jsonResp, err := json.Marshal(resp)
+			if err != nil {
+				rw.WriteHeader(http.StatusInternalServerError)
+				rw.Write([]byte(err.Error()))
+				return
+			}
+			rw.Write(jsonResp)
+			return
+		}
+		accessToken := token[1]
+
+		_, err := service.Verify(accessToken, h.Cfg)
+		if err != nil {
+			if errors.Is(err, jwt.ValidationError{Errors: jwt.ValidationErrorExpired}) {
+				rw.WriteHeader(http.StatusUnauthorized)
+				resp["error"] = err.Error()
+				jsonResp, err := json.Marshal(resp)
+				if err != nil {
+					rw.WriteHeader(http.StatusInternalServerError)
+					rw.Write([]byte(err.Error()))
+					return
+				}
+				rw.Write(jsonResp)
+				return
+			}
+			if errors.Is(err, jwt.ErrSignatureInvalid) {
+				rw.WriteHeader(http.StatusForbidden)
+				resp["error"] = fmt.Errorf("wrong signature").Error()
+				jsonResp, err := json.Marshal(resp)
+				if err != nil {
+					rw.WriteHeader(http.StatusInternalServerError)
+					rw.Write([]byte(err.Error()))
+					return
+				}
+				rw.Write(jsonResp)
+				return
+			}
+			if errors.Is(err, service.ErrTokenId) {
+				rw.WriteHeader(http.StatusForbidden)
+				resp["error"] = fmt.Errorf("id failed").Error()
+				jsonResp, err := json.Marshal(resp)
+				if err != nil {
+					rw.WriteHeader(http.StatusInternalServerError)
+					rw.Write([]byte(err.Error()))
+					return
+				}
+				rw.Write(jsonResp)
+				return
+			}
+
+			rw.WriteHeader(http.StatusInternalServerError)
+			resp["error"] = fmt.Errorf("verify failed: %w", err).Error()
+			jsonResp, err := json.Marshal(resp)
+			if err != nil {
+				rw.WriteHeader(http.StatusInternalServerError)
+				rw.Write([]byte(err.Error()))
+				return
+			}
+			rw.Write(jsonResp)
+			return
+		}
+
+		handler.ServeHTTP(rw, r)
+
+	})
+}
+
+func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Responder {
+	id, err := service.Verify(token.Input.RefreshToken, h.Cfg)
+	if err != nil {
+		if errors.Is(err, service.ErrTokenExpired) {
+			body := auth.PostDriverRefreshUnauthorizedBody{
+				Error: err.Error(),
+			}
+			return auth.NewPostDriverRefreshUnauthorized().WithPayload(&body)
+		}
+		if errors.Is(err, jwt.ErrSignatureInvalid) {
+			body := auth.PostDriverRefreshForbiddenBody{
+				Error: err.Error(),
+			}
+			return auth.NewPostDriverRefreshForbidden().WithPayload(&body)
+		}
+
+		body := auth.PostDriverRefreshInternalServerErrorBody{
+			Error: fmt.Errorf("verify rt failed: %w", err).Error(),
+		}
+		return auth.NewPostDriverRefreshInternalServerError().WithPayload(&body)
+	}
+	uuid, _ := uuid.Parse(id)
+	driver := model.Driver{
+		ID: uuid,
+	}
+	t, err := h.s.Refresh(driver)
+	if err != nil {
+		if errors.Is(err, service.ErrIncorrectPassword) {
+			body := auth.PostDriverSingInForbiddenBody{
+				Error: err.Error(),
+			}
+			return auth.NewPostDriverSingInForbidden().WithPayload(&body)
+		}
+
+		body := auth.PostDriverSingInInternalServerErrorBody{
+			Error: fmt.Errorf("sing in failed: %v", err).Error(),
+		}
+		return auth.NewPostDriverSingInInternalServerError().WithPayload(&body)
+	}
+
+	body := auth.PostDriverRefreshOKBody{
+		AccessToken:  t.AccessToken,
+		RefreshToken: t.RefreshToken,
+	}
+
+	return auth.NewPostDriverRefreshOK().WithPayload(&body)
 }

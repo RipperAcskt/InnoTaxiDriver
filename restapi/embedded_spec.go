@@ -27,6 +27,94 @@ func init() {
     "version": "1.0"
   },
   "paths": {
+    "/driver/refresh": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "parameters": [
+          {
+            "description": "Refresh access token",
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refresh_token": {
+                  "type": "string",
+                  "required": [
+                    "true"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Access token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string"
+                },
+                "refresh_token": {
+                  "type": "string"
+                }
+              }
+            },
+            "examples": {
+              "properties": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzUxNjcyODksInVzZXJfaWQiOjF9.gCvkF6ZWJ5c_zA79ILuuEwvkrkn1kOU1Y-Mgr3K2NiM",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzc3NTc0OTcsInVzZXJfaWQiOjF9.H5s2JnmjUseUqWFYiLzfYWrlIfa-4dDtd3H2LS5R6IM"
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Token expired",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Wrong signature",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/driver/sing-in": {
       "post": {
         "consumes": [
@@ -34,6 +122,9 @@ func init() {
         ],
         "produces": [
           "application/json"
+        ],
+        "tags": [
+          "auth"
         ],
         "parameters": [
           {
@@ -67,7 +158,7 @@ func init() {
               "type": "object",
               "properties": {
                 "access_token": {
-                  "type": "integer"
+                  "type": "string"
                 },
                 "refresh_token": {
                   "type": "string"
@@ -222,6 +313,94 @@ func init() {
     "version": "1.0"
   },
   "paths": {
+    "/driver/refresh": {
+      "post": {
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "auth"
+        ],
+        "parameters": [
+          {
+            "description": "Refresh access token",
+            "name": "input",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "refresh_token": {
+                  "type": "string",
+                  "required": [
+                    "true"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Access token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "access_token": {
+                  "type": "string"
+                },
+                "refresh_token": {
+                  "type": "string"
+                }
+              }
+            },
+            "examples": {
+              "properties": {
+                "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2NzUxNjcyODksInVzZXJfaWQiOjF9.gCvkF6ZWJ5c_zA79ILuuEwvkrkn1kOU1Y-Mgr3K2NiM",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2Nzc3NTc0OTcsInVzZXJfaWQiOjF9.H5s2JnmjUseUqWFYiLzfYWrlIfa-4dDtd3H2LS5R6IM"
+              },
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Token expired",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Wrong signature",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/driver/sing-in": {
       "post": {
         "consumes": [
@@ -229,6 +408,9 @@ func init() {
         ],
         "produces": [
           "application/json"
+        ],
+        "tags": [
+          "auth"
         ],
         "parameters": [
           {
@@ -262,7 +444,7 @@ func init() {
               "type": "object",
               "properties": {
                 "access_token": {
-                  "type": "integer"
+                  "type": "string"
                 },
                 "refresh_token": {
                   "type": "string"

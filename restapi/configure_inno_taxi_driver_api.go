@@ -10,6 +10,7 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/golang-migrate/migrate/v4"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
 	"github.com/RipperAcskt/innotaxidriver/internal/handler"
@@ -40,14 +41,17 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 		log.Fatalf("cassandra new failed: %v", err)
 	}
 
+	err = cassandra.M.Up()
+	if err != migrate.ErrNoChange && err != nil {
+		log.Fatalf("migrate up failed: %v", err)
+	}
+
 	service := service.New(cassandra, cfg)
 	handler := handler.New(service, cfg)
 
 	api.AuthPostDriverSingUpHandler = auth.PostDriverSingUpHandlerFunc(handler.SingUp)
 
 	api.JSONConsumer = runtime.JSONConsumer()
-
-	api.JSONProducer = runtime.JSONProducer()
 
 	if api.AuthPostDriverSingUpHandler == nil {
 		api.AuthPostDriverSingUpHandler = auth.PostDriverSingUpHandlerFunc(func(params auth.PostDriverSingUpParams) middleware.Responder {

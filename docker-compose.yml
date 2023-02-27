@@ -1,6 +1,26 @@
 version: '3.9'
 services:
-  inno-taxi-user:
+  cassandra:
+    image: cassandra:latest
+    environment:
+      - "CASSANDRA_USERNAME=ripper"
+      - "CASSANDRA_PASSWORD=150403"
+    ports:
+      - "9042:9042"
+    volumes:
+      - ./data:/var/lib/cassandra
+    healthcheck:
+      test: [ "CMD-SHELL", "cqlsh --username ripper --password 150403 -e 'describe cluster'" ]
+      interval: 5s
+      timeout: 120s
+      retries: 24
+  inno-taxi-driver:
     build: .
+    environment:
+      - "HOST=0.0.0.0"
+    restart: "always"
     ports:
       - "8080:8080"
+    depends_on:
+      cassandra:
+        condition: service_healthy

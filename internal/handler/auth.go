@@ -79,7 +79,12 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 		if len(token) < 2 {
 			rw.WriteHeader(http.StatusUnauthorized)
 			resp["error"] = fmt.Errorf("access token required").Error()
-			jsonResp, _ := json.Marshal(resp)
+			jsonResp, err := json.Marshal(resp)
+			if err != nil {
+				rw.WriteHeader(http.StatusInternalServerError)
+				rw.Write([]byte(err.Error()))
+				return
+			}
 			rw.Write(jsonResp)
 			return
 		}
@@ -87,24 +92,51 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 
 		id, err := service.Verify(accessToken, h.Cfg)
 		if err != nil {
-			if strings.Contains(err.Error(), "Token is expired") {
+			if errors.Is(err, jwt.ValidationError{Errors: jwt.ValidationErrorExpired}) {
 				rw.WriteHeader(http.StatusUnauthorized)
 				resp["error"] = err.Error()
-				jsonResp, _ := json.Marshal(resp)
+				jsonResp, err := json.Marshal(resp)
+				if err != nil {
+					rw.WriteHeader(http.StatusInternalServerError)
+					rw.Write([]byte(err.Error()))
+					return
+				}
 				rw.Write(jsonResp)
 				return
 			}
-			if strings.Contains(err.Error(), jwt.ErrSignatureInvalid.Error()) {
+			if errors.Is(err, jwt.ErrSignatureInvalid) {
 				rw.WriteHeader(http.StatusForbidden)
 				resp["error"] = fmt.Errorf("wrong signature").Error()
-				jsonResp, _ := json.Marshal(resp)
+				jsonResp, err := json.Marshal(resp)
+				if err != nil {
+					rw.WriteHeader(http.StatusInternalServerError)
+					rw.Write([]byte(err.Error()))
+					return
+				}
+				rw.Write(jsonResp)
+				return
+			}
+			if errors.Is(err, service.ErrTokenId) {
+				rw.WriteHeader(http.StatusForbidden)
+				resp["error"] = fmt.Errorf("id failed").Error()
+				jsonResp, err := json.Marshal(resp)
+				if err != nil {
+					rw.WriteHeader(http.StatusInternalServerError)
+					rw.Write([]byte(err.Error()))
+					return
+				}
 				rw.Write(jsonResp)
 				return
 			}
 
 			rw.WriteHeader(http.StatusInternalServerError)
 			resp["error"] = fmt.Errorf("verify failed: %w", err).Error()
-			jsonResp, _ := json.Marshal(resp)
+			jsonResp, err := json.Marshal(resp)
+			if err != nil {
+				rw.WriteHeader(http.StatusInternalServerError)
+				rw.Write([]byte(err.Error()))
+				return
+			}
 			rw.Write(jsonResp)
 			return
 		}
@@ -115,7 +147,6 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 }
 
 func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Responder {
-
 	id, err := service.Verify(token.Input.RefreshToken, h.Cfg)
 	if err != nil {
 		if errors.Is(err, service.ErrTokenExpired) {
@@ -124,7 +155,7 @@ func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Respond
 			}
 			return auth.NewPostDriverRefreshUnauthorized().WithPayload(&body)
 		}
-		if strings.Contains(err.Error(), jwt.ErrSignatureInvalid.Error()) {
+		if errors.Is(err, jwt.ErrSignatureInvalid) {
 			body := auth.PostDriverRefreshForbiddenBody{
 				Error: err.Error(),
 			}

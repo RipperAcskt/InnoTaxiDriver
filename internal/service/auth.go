@@ -6,9 +6,10 @@ import (
 	"time"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
-	"github.com/RipperAcskt/innotaxidriver/internal/handler/grpc"
+	user "github.com/RipperAcskt/innotaxidriver/internal/client"
 	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/golang-jwt/jwt"
+	"github.com/google/uuid"
 )
 
 var (
@@ -16,6 +17,8 @@ var (
 	ErrDriverDoesNotExists = fmt.Errorf("driver does not exist")
 	ErrIncorrectPassword   = fmt.Errorf("incorrect password")
 	ErrTokenExpired        = fmt.Errorf("token expired")
+	ErrTokenClaims         = fmt.Errorf("jwt map claims failed")
+	ErrTokenId             = fmt.Errorf("jwt get user id failed failed")
 )
 
 type AuthRepo interface {
@@ -23,14 +26,18 @@ type AuthRepo interface {
 	CheckUserByPhoneNumber(phone_number string) (*model.Driver, error)
 }
 
-type AuthService struct {
-	AuthRepo
-	client *grpc.Client
-	cfg    *config.Config
+type UserSerivce interface {
+	GetJWT(id uuid.UUID) (*user.Token, error)
 }
 
-func NewAuthSevice(cassandra AuthRepo, client *grpc.Client, cfg *config.Config) *AuthService {
-	return &AuthService{cassandra, client, cfg}
+type AuthService struct {
+	AuthRepo
+	user UserSerivce
+	cfg  *config.Config
+}
+
+func NewAuthSevice(cassandra AuthRepo, user UserSerivce, cfg *config.Config) *AuthService {
+	return &AuthService{cassandra, user, cfg}
 }
 
 func (s *AuthService) SingUp(driver model.Driver) error {
@@ -56,7 +63,7 @@ func (s *AuthService) GenerateHash(password string) (string, error) {
 	return string(hash.Sum([]byte(s.cfg.SALT))), nil
 }
 
-func (s *AuthService) SingIn(driver model.Driver) (*grpc.Token, error) {
+func (s *AuthService) SingIn(driver model.Driver) (*user.Token, error) {
 	driverDB, err := s.CheckUserByPhoneNumber(driver.PhoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("check user by phone number failed: %w", err)
@@ -72,7 +79,7 @@ func (s *AuthService) SingIn(driver model.Driver) (*grpc.Token, error) {
 		return nil, ErrIncorrectPassword
 	}
 
-	token, err := s.client.GetJWT(driverDB.ID)
+	token, err := s.user.GetJWT(driverDB.ID)
 	if err != nil {
 		return nil, fmt.Errorf("get jwt failed: %w", err)
 	}
@@ -94,17 +101,21 @@ func Verify(token string, cfg *config.Config) (string, error) {
 
 	claims, ok := tokenJwt.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", fmt.Errorf("jwt map claims failed")
+		return "", ErrTokenClaims
 	}
 
 	if !claims.VerifyExpiresAt(time.Now().UTC().Unix(), true) {
 		return "", ErrTokenExpired
 	}
-	return string(claims["user_id"].(string)), nil
+	id, ok := claims["user_id"]
+	if !ok {
+		return "", ErrTokenId
+	}
+	return string(id.(string)), nil
 }
 
-func (s *AuthService) Refresh(driver model.Driver) (*grpc.Token, error) {
-	token, err := s.client.GetJWT(driver.ID)
+func (s *AuthService) Refresh(driver model.Driver) (*user.Token, error) {
+	token, err := s.user.GetJWT(driver.ID)
 	if err != nil {
 		return nil, fmt.Errorf("get jwt failed: %w", err)
 	}

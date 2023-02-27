@@ -14,7 +14,7 @@ type Service struct {
 	*UserService
 }
 
-func New(cassandra AuthRepo, client UserSerivce, cfg *config.Config) *Service {
+func New(cassandra Repo, client UserSerivce, cfg *config.Config) *Service {
 	return &Service{
 		AuthService: NewAuthSevice(cassandra, client, cfg),
 		UserService: NewUserSevice(cassandra, cfg),

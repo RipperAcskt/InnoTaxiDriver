@@ -1,12 +1,14 @@
 package cassandra
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
 	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
+	"github.com/google/uuid"
 
 	"github.com/gocql/gocql"
 	"github.com/golang-migrate/migrate/v4"
@@ -53,13 +55,28 @@ func (c *Cassandra) CreateDriver(driver model.Driver) error {
 	var name string
 	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE (phone_number = ? OR email = ?) AND status = ?", driver.PhoneNumber, driver.Email, model.StatusCreated).Scan(&name)
 	if err == nil {
-		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrUserAlreadyExists)
+		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrDriverAlreadyExists)
 
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, rating, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}
 	return nil
+}
+
+func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, error) {
+	var driver model.Driver
+	var id gocql.UUID
+	err := c.session.Query("SELECT id, phone_number, password FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", phone_number, model.StatusCreated).Scan(&id, &driver.PhoneNumber, &driver.Password)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, service.ErrDriverDoesNotExists
+		}
+
+		return nil, fmt.Errorf("scan failed: %w", err)
+	}
+	driver.ID = uuid.UUID(id)
+	return &driver, nil
 }

@@ -47,11 +47,6 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 		log.Fatalf("migrate up failed: %v", err)
 	}
 
-	err = cassandra.M.Up()
-	if err != migrate.ErrNoChange && err != nil {
-		log.Fatalf("migrate up failed: %v", err)
-	}
-
 	client, err := user.New(cfg)
 	if err != nil {
 		log.Fatalf("grpc new failed: %v", err)

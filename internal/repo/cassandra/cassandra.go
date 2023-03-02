@@ -1,6 +1,7 @@
 package cassandra
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -81,7 +82,16 @@ func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, 
 	return &driver, nil
 }
 
-func (c *Cassandra) UpdateDriverById(driver model.Driver) error {
+func (c *Cassandra) UpdateDriverById(ctx context.Context, driver model.Driver) error {
+	r, val := c.validation(driver)
+	err := c.session.Query(r, val...).WithContext(ctx).Exec()
+	if err != nil {
+		return fmt.Errorf("exec context failed: %w", err)
+	}
+	return nil
+}
+
+func (c *Cassandra) validation(driver model.Driver) (string, []any) {
 	r := "UPDATE innotaxi.drivers SET "
 	var val []any
 	if driver.Name != "" {
@@ -99,9 +109,5 @@ func (c *Cassandra) UpdateDriverById(driver model.Driver) error {
 	r += "WHERE id = ?"
 	val = append(val, driver.ID.String())
 
-	err := c.session.Query(r, val...).Exec()
-	if err != nil {
-		return fmt.Errorf("exec context failed: %w", err)
-	}
-	return nil
+	return r, val
 }

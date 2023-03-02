@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -140,7 +141,7 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 			rw.Write(jsonResp)
 			return
 		}
-		r.Header.Add("id", id)
+		r = r.WithContext(context.WithValue(r.Context(), "id", id))
 		handler.ServeHTTP(rw, r)
 
 	})

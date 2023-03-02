@@ -22,15 +22,15 @@ func New(s *service.Service, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
-	id := d.HTTPRequest.Header.Get("id")
+	id := d.HTTPRequest.Context().Value("id")
 	dr := model.Driver{
-		ID:          uuid.MustParse(id),
+		ID:          uuid.MustParse(id.(string)),
 		Name:        d.Input.Name,
 		PhoneNumber: d.Input.PhoneNumber,
 		Email:       d.Input.Email,
 	}
 
-	err := h.s.UpdateProfile(dr)
+	err := h.s.UpdateProfile(d.HTTPRequest.Context(), dr)
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := driver.PutDriverBadRequestBody{

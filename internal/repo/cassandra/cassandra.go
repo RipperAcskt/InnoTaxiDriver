@@ -54,10 +54,13 @@ func (c *Cassandra) Close() {
 
 func (c *Cassandra) CreateDriver(driver model.Driver) error {
 	var name string
-	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE (phone_number = ? OR email = ?) AND status = ?", driver.PhoneNumber, driver.Email, model.StatusCreated).Scan(&name)
+	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", driver.PhoneNumber, model.StatusCreated).Scan(&name)
 	if err == nil {
 		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrDriverAlreadyExists)
-
+	}
+	err = c.session.Query("SELECT name FROM innotaxi.drivers WHERE email = ? AND status = ? ALLOW FILTERING", driver.Email, model.StatusCreated).Scan(&name)
+	if err == nil {
+		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrDriverAlreadyExists)
 	}
 
 	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()

@@ -1,6 +1,7 @@
 package cassandra
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -81,8 +82,8 @@ func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, 
 	return &driver, nil
 }
 
-func (c *Cassandra) DeleteDriverById(id string) error {
-	err := c.session.Query("UPDATE innotaxi.drivers SET status = ? WHERE id = ?", model.StatusDeleted, id).Exec()
+func (c *Cassandra) DeleteDriverById(ctx context.Context, id string) error {
+	err := c.session.Query("UPDATE innotaxi.drivers SET status = ? WHERE id = ?", model.StatusDeleted, id).WithContext(ctx).Exec()
 	if err != nil {
 		return fmt.Errorf("exec context failed: %w", err)
 	}

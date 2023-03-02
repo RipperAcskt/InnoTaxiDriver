@@ -20,9 +20,9 @@ func New(s *service.Service, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) DeleteProfile(d driver.DeleteDriverParams) middleware.Responder {
-	id := d.HTTPRequest.Header.Get("id")
+	id := d.HTTPRequest.Context().Value("id")
 
-	err := h.s.DeleteProfile(id)
+	err := h.s.DeleteProfile(d.HTTPRequest.Context(), id.(string))
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := driver.DeleteDriverBadRequestBody{

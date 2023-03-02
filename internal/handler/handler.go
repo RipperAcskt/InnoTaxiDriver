@@ -20,8 +20,8 @@ func New(s *service.Service, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) GetProfile(d driver.GetDriverParams) middleware.Responder {
-	id := d.HTTPRequest.Header.Get("id")
-	dr, err := h.s.GetProfile(id)
+	id := d.HTTPRequest.Context().Value("id")
+	dr, err := h.s.GetProfile(d.HTTPRequest.Context(), id.(string))
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := driver.GetDriverBadRequestBody{

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,7 +24,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 		Password:    d.Input.Password,
 	}
 
-	err := h.s.SingUp(driver)
+	err := h.s.SingUp(d.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := auth.PostDriverSingUpBadRequestBody{
@@ -50,7 +51,7 @@ func (h *Handler) SingIn(d auth.PostDriverSingInParams) middleware.Responder {
 		Password:    d.Input.Password,
 	}
 
-	token, err := h.s.SingIn(driver)
+	token, err := h.s.SingIn(d.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrIncorrectPassword) {
 			body := auth.PostDriverSingInForbiddenBody{
@@ -140,7 +141,7 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 			rw.Write(jsonResp)
 			return
 		}
-		r.Header.Add("id", id)
+		r = r.WithContext(context.WithValue(r.Context(), "id", id))
 		handler.ServeHTTP(rw, r)
 
 	})
@@ -171,7 +172,7 @@ func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Respond
 	driver := model.Driver{
 		ID: uuid,
 	}
-	t, err := h.s.Refresh(driver)
+	t, err := h.s.Refresh(token.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrIncorrectPassword) {
 			body := auth.PostDriverSingInForbiddenBody{

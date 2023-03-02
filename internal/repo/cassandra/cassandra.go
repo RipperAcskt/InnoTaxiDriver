@@ -1,6 +1,7 @@
 package cassandra
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -51,25 +52,31 @@ func (c *Cassandra) Close() {
 	c.session.Close()
 }
 
-func (c *Cassandra) CreateDriver(driver model.Driver) error {
+func (c *Cassandra) CreateDriver(ctx context.Context, driver model.Driver) error {
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	var name string
-	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE (phone_number = ? OR email = ?) AND status = ?", driver.PhoneNumber, driver.Email, model.StatusCreated).Scan(&name)
+	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE (phone_number = ? OR email = ?) AND status = ?", driver.PhoneNumber, driver.Email, model.StatusCreated).WithContext(queryCtx).Scan(&name)
 	if err == nil {
 		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrDriverAlreadyExists)
 
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).WithContext(queryCtx).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}
 	return nil
 }
 
-func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, error) {
+func (c *Cassandra) CheckUserByPhoneNumber(ctx context.Context, phone_number string) (*model.Driver, error) {
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	var driver model.Driver
 	var id gocql.UUID
-	err := c.session.Query("SELECT id, phone_number, password FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", phone_number, model.StatusCreated).Scan(&id, &driver.PhoneNumber, &driver.Password)
+	err := c.session.Query("SELECT id, phone_number, password FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", phone_number, model.StatusCreated).WithContext(queryCtx).Scan(&id, &driver.PhoneNumber, &driver.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, service.ErrDriverDoesNotExists
@@ -81,10 +88,13 @@ func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, 
 	return &driver, nil
 }
 
-func (c *Cassandra) GetUserById(id string) (*model.Driver, error) {
+func (c *Cassandra) GetUserById(ctx context.Context, id string) (*model.Driver, error) {
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	driver := &model.Driver{}
 	var driverID gocql.UUID
-	err := c.session.Query("SELECT id, name, phone_number, email, raiting FROM innotaxi.drivers WHERE id = ? AND status = ? ALLOW FILTERING", id, model.StatusCreated).Scan(&driverID, &driver.Name, &driver.PhoneNumber, &driver.Email, &driver.Raiting)
+	err := c.session.Query("SELECT id, name, phone_number, email, raiting FROM innotaxi.drivers WHERE id = ? AND status = ? ALLOW FILTERING", id, model.StatusCreated).WithContext(queryCtx).Scan(&driverID, &driver.Name, &driver.PhoneNumber, &driver.Email, &driver.Raiting)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, service.ErrDriverDoesNotExists

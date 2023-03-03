@@ -10,6 +10,7 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
+	"github.com/golang-migrate/migrate/v4"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
 	user "github.com/RipperAcskt/innotaxidriver/internal/client"
@@ -39,6 +40,16 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 	cassandra, err := cassandra.New(cfg)
 	if err != nil {
 		log.Fatalf("cassandra new failed: %v", err)
+	}
+
+	err = cassandra.M.Down()
+	if err != migrate.ErrNoChange && err != nil {
+		log.Fatalf("migrate up failed: %v", err)
+	}
+
+	err = cassandra.M.Up()
+	if err != migrate.ErrNoChange && err != nil {
+		log.Fatalf("migrate up failed: %v", err)
 	}
 
 	client, err := user.New(cfg)

@@ -42,11 +42,6 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 		log.Fatalf("cassandra new failed: %v", err)
 	}
 
-	err = cassandra.M.Down()
-	if err != migrate.ErrNoChange && err != nil {
-		log.Fatalf("migrate up failed: %v", err)
-	}
-
 	err = cassandra.M.Up()
 	if err != migrate.ErrNoChange && err != nil {
 		log.Fatalf("migrate up failed: %v", err)

@@ -21,6 +21,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 		PhoneNumber: d.Input.PhoneNumber,
 		Email:       d.Input.Email,
 		Password:    d.Input.Password,
+		TaxiType:    d.Input.TaxiType,
 	}
 
 	err := h.s.SingUp(driver)

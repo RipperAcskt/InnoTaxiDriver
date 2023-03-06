@@ -19,7 +19,7 @@ import (
 
 type Cassandra struct {
 	session *gocql.Session
-	Migrate *migrate.Migrate
+	M       *migrate.Migrate
 	cfg     *config.Config
 }
 
@@ -63,7 +63,7 @@ func (c *Cassandra) CreateDriver(ctx context.Context, driver model.Driver) error
 
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, status) VALUES(?, ?, ?, ?, ?, 0.0, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), model.StatusCreated).WithContext(queryCtx).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, taxi_type, status) VALUES(?, ?, ?, ?, ?, 0.0, ?, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), driver.TaxiType, model.StatusCreated).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}

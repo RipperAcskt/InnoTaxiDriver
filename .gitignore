@@ -1,3 +1,3 @@
 .DS_Store
-config/app.env
 data
+config/app.env

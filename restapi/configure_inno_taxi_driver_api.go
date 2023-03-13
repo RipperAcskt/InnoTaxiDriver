@@ -63,8 +63,6 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 
 	api.JSONConsumer = runtime.JSONConsumer()
 
-	api.JSONProducer = runtime.JSONProducer()
-
 	if api.AuthPostDriverSingUpHandler == nil {
 		api.AuthPostDriverSingUpHandler = auth.PostDriverSingUpHandlerFunc(func(params auth.PostDriverSingUpParams) middleware.Responder {
 			return middleware.NotImplemented("operation auth.PostDriverSingUp has not yet been implemented")

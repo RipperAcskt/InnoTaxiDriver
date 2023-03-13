@@ -83,7 +83,7 @@ func (c *Cassandra) CheckUserByPhoneNumber(phone_number string) (*model.Driver, 
 }
 
 func (c *Cassandra) UpdateDriverById(ctx context.Context, driver model.Driver) error {
-	r, val := c.validation(driver)
+	r, val := c.CreateRequest(driver)
 	err := c.session.Query(r, val...).WithContext(ctx).Exec()
 	if err != nil {
 		return fmt.Errorf("exec context failed: %w", err)
@@ -91,7 +91,7 @@ func (c *Cassandra) UpdateDriverById(ctx context.Context, driver model.Driver) e
 	return nil
 }
 
-func (c *Cassandra) validation(driver model.Driver) (string, []any) {
+func (c *Cassandra) CreateRequest(driver model.Driver) (string, []any) {
 	r := "UPDATE innotaxi.drivers SET "
 	var val []any
 	if driver.Name != "" {

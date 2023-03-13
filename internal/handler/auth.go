@@ -16,6 +16,10 @@ import (
 	"github.com/google/uuid"
 )
 
+type key string
+
+const userId key = "id"
+
 func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 	driver := model.Driver{
 		Name:        d.Input.Name,
@@ -142,10 +146,20 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 			rw.Write(jsonResp)
 			return
 		}
-		r = r.WithContext(context.WithValue(r.Context(), "id", id))
+		ctx := ContextWithId(r.Context(), id)
+		r = r.WithContext(ctx)
 		handler.ServeHTTP(rw, r)
 
 	})
+}
+
+func ContextWithId(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, userId, id)
+}
+
+func IdFromContext(ctx context.Context) (string, bool) {
+	id, ok := ctx.Value(userId).(string)
+	return id, ok
 }
 
 func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Responder {

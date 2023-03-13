@@ -20,9 +20,15 @@ func New(s *service.Service, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) DeleteProfile(d driver.DeleteDriverParams) middleware.Responder {
-	id := d.HTTPRequest.Context().Value("id")
+	id, ok := IdFromContext(d.HTTPRequest.Context())
+	if !ok {
+		body := driver.DeleteDriverBadRequestBody{
+			Error: fmt.Errorf("bad access token").Error(),
+		}
+		return driver.NewDeleteDriverBadRequest().WithPayload(&body)
+	}
 
-	err := h.s.DeleteProfile(d.HTTPRequest.Context(), id.(string))
+	err := h.s.DeleteProfile(d.HTTPRequest.Context(), id)
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := driver.DeleteDriverBadRequestBody{

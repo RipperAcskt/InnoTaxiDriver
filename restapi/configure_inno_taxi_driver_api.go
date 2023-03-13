@@ -60,6 +60,7 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 	api.AuthPostDriverRefreshHandler = auth.PostDriverRefreshHandlerFunc(handler.Refresh)
 
 	api.AddMiddlewareFor("POST", "/driver/refresh", handler.VerifyToken)
+	api.AddMiddlewareFor("POST", "/drievr", handler.Recovery)
 
 	api.JSONConsumer = runtime.JSONConsumer()
 

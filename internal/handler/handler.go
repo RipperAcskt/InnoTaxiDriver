@@ -20,8 +20,15 @@ func New(s *service.Service, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) GetProfile(d driver.GetDriverParams) middleware.Responder {
-	id := d.HTTPRequest.Context().Value("id")
-	dr, err := h.s.GetProfile(d.HTTPRequest.Context(), id.(string))
+	id, ok := IdFromContext(d.HTTPRequest.Context())
+	if !ok {
+		body := driver.GetDriverBadRequestBody{
+			Error: fmt.Errorf("bad access token").Error(),
+		}
+		return driver.NewGetDriverBadRequest().WithPayload(&body)
+	}
+
+	dr, err := h.s.GetProfile(d.HTTPRequest.Context(), id)
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := driver.GetDriverBadRequestBody{

@@ -22,9 +22,16 @@ func New(s *service.Service, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
-	id := d.HTTPRequest.Context().Value("id")
+	id, ok := IdFromContext(d.HTTPRequest.Context())
+	if !ok {
+		body := driver.PutDriverBadRequestBody{
+			Error: fmt.Errorf("bad access token").Error(),
+		}
+		return driver.NewPutDriverBadRequest().WithPayload(&body)
+	}
+
 	dr := model.Driver{
-		ID:          uuid.MustParse(id.(string)),
+		ID:          uuid.MustParse(id),
 		Name:        d.Input.Name,
 		PhoneNumber: d.Input.PhoneNumber,
 		Email:       d.Input.Email,

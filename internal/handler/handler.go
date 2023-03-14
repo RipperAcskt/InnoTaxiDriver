@@ -80,7 +80,7 @@ func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
 		}
 
 		body := driver.PutDriverInternalServerErrorBody{
-			Error: fmt.Errorf("get profile failed: %w", err).Error(),
+			Error: fmt.Errorf("update profile failed: %w", err).Error(),
 		}
 		return driver.NewPutDriverInternalServerError().WithPayload(&body)
 	}

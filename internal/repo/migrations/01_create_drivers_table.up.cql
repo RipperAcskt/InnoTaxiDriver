@@ -7,5 +7,5 @@ CREATE TABLE IF NOT EXISTS innotaxi.drivers(
     raiting float,
     taxi_type text,
     status text,
-    PRIMARY KEY((phone_number))
+    PRIMARY KEY((id))
 );

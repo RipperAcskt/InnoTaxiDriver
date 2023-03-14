@@ -131,6 +131,5 @@ func (c *Cassandra) CreateRequest(driver model.Driver) (string, []any) {
 	}
 	r += "WHERE id = ?"
 	val = append(val, driver.ID.String())
-
 	return r, val
 }

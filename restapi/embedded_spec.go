@@ -104,9 +104,7 @@ func init() {
             }
           }
         }
-      }
-    },
-    "/driver": {
+      },
       "put": {
         "consumes": [
           "application/json"
@@ -553,9 +551,7 @@ func init() {
             }
           }
         }
-      }
-    },
-    "/driver": {
+      },
       "put": {
         "consumes": [
           "application/json"

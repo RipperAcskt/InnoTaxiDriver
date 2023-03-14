@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const logger key = "logger"
+
 func (h *Handler) Log(handler http.Handler) http.Handler {
 	resp := make(map[string]string)
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -28,7 +30,7 @@ func (h *Handler) Log(handler http.Handler) http.Handler {
 			rw.Write(jsonResp)
 			return
 		}
-		r = r.WithContext(context.WithValue(r.Context(), "logger", log))
+		r = r.WithContext(ContextWithLogger(r.Context(), log))
 
 		handler.ServeHTTP(rw, r)
 
@@ -36,8 +38,11 @@ func (h *Handler) Log(handler http.Handler) http.Handler {
 	})
 }
 
-func GetLogger(r *http.Request) zap.Logger {
-	log := r.Context().Value("logger")
-	logger := log.(zap.Logger)
-	return logger
+func ContextWithLogger(ctx context.Context, log *zap.Logger) context.Context {
+	return context.WithValue(ctx, logger, log)
+}
+
+func LoggerFromContext(ctx context.Context) (zap.Logger, bool) {
+	log, ok := ctx.Value(logger).(zap.Logger)
+	return log, ok
 }

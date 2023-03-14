@@ -20,6 +20,7 @@ import (
 	"github.com/go-openapi/swag"
 
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations/auth"
+	"github.com/RipperAcskt/innotaxidriver/restapi/operations/driver"
 )
 
 // NewInnoTaxiDriverAPIAPI creates a new InnoTaxiDriverAPI instance
@@ -44,6 +45,9 @@ func NewInnoTaxiDriverAPIAPI(spec *loads.Document) *InnoTaxiDriverAPIAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		DriverGetDriverHandler: driver.GetDriverHandlerFunc(func(params driver.GetDriverParams) middleware.Responder {
+			return middleware.NotImplemented("operation driver.GetDriver has not yet been implemented")
+		}),
 		AuthPostDriverRefreshHandler: auth.PostDriverRefreshHandlerFunc(func(params auth.PostDriverRefreshParams) middleware.Responder {
 			return middleware.NotImplemented("operation auth.PostDriverRefresh has not yet been implemented")
 		}),
@@ -89,6 +93,8 @@ type InnoTaxiDriverAPIAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// DriverGetDriverHandler sets the operation handler for the get driver operation
+	DriverGetDriverHandler driver.GetDriverHandler
 	// AuthPostDriverRefreshHandler sets the operation handler for the post driver refresh operation
 	AuthPostDriverRefreshHandler auth.PostDriverRefreshHandler
 	// AuthPostDriverSingInHandler sets the operation handler for the post driver sing in operation
@@ -172,6 +178,9 @@ func (o *InnoTaxiDriverAPIAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.DriverGetDriverHandler == nil {
+		unregistered = append(unregistered, "driver.GetDriverHandler")
+	}
 	if o.AuthPostDriverRefreshHandler == nil {
 		unregistered = append(unregistered, "auth.PostDriverRefreshHandler")
 	}
@@ -269,6 +278,10 @@ func (o *InnoTaxiDriverAPIAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/driver"] = driver.NewGetDriver(o.context, o.DriverGetDriverHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}

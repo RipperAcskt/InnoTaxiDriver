@@ -27,6 +27,85 @@ func init() {
     "version": "1.0"
   },
   "paths": {
+    "/driver": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Driver info",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "phone_number": {
+                  "type": "string"
+                },
+                "raiting": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Driver does not exist",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token expired",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Incorrect token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/driver/refresh": {
       "post": {
         "consumes": [
@@ -313,6 +392,85 @@ func init() {
     "version": "1.0"
   },
   "paths": {
+    "/driver": {
+      "get": {
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "driver"
+        ],
+        "responses": {
+          "200": {
+            "description": "Driver info",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "phone_number": {
+                  "type": "string"
+                },
+                "raiting": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Driver does not exist",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token expired",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Incorrect token",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/driver/refresh": {
       "post": {
         "consumes": [

@@ -38,12 +38,12 @@ func New(cfg *config.Config) (*User, error) {
 	return &User{client, conn, cfg}, nil
 }
 
-func (u *User) GetJWT(id uuid.UUID) (*Token, error) {
+func (u *User) GetJWT(ctx context.Context, id uuid.UUID) (*Token, error) {
 	request := &pb.Params{
 		DriverID: id.String(),
 		Type:     "driver",
 	}
-	response, err := u.client.GetJWT(context.Background(), request)
+	response, err := u.client.GetJWT(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("get jwt failed: %w", err)
 	}

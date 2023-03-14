@@ -61,7 +61,6 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 	api.AuthPostDriverRefreshHandler = auth.PostDriverRefreshHandlerFunc(handler.Refresh)
 
 	api.DriverGetDriverHandler = driver.GetDriverHandlerFunc(handler.GetProfile)
-
 	api.DriverPutDriverHandler = driver.PutDriverHandlerFunc(handler.UpdateProfile)
 
 	api.AddMiddlewareFor("POST", "/driver/refresh", handler.VerifyToken)

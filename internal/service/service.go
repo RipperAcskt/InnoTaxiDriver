@@ -4,12 +4,19 @@ import (
 	"github.com/RipperAcskt/innotaxidriver/config"
 )
 
-type Service struct {
-	*AuthService
+type Repo interface {
+	UserRepo
+	AuthRepo
 }
 
-func New(cassandra AuthRepo, client UserSerivce, cfg *config.Config) *Service {
+type Service struct {
+	*AuthService
+	*UserService
+}
+
+func New(cassandra Repo, client UserSerivce, cfg *config.Config) *Service {
 	return &Service{
 		AuthService: NewAuthSevice(cassandra, client, cfg),
+		UserService: NewUserSevice(cassandra, cfg),
 	}
 }

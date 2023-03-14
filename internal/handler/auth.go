@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,15 +16,20 @@ import (
 	"github.com/google/uuid"
 )
 
+type key string
+
+const userId key = "id"
+
 func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 	driver := model.Driver{
 		Name:        d.Input.Name,
 		PhoneNumber: d.Input.PhoneNumber,
 		Email:       d.Input.Email,
 		Password:    d.Input.Password,
+		TaxiType:    d.Input.TaxiType,
 	}
 
-	err := h.s.SingUp(driver)
+	err := h.s.SingUp(d.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := auth.PostDriverSingUpBadRequestBody{
@@ -50,7 +56,7 @@ func (h *Handler) SingIn(d auth.PostDriverSingInParams) middleware.Responder {
 		Password:    d.Input.Password,
 	}
 
-	token, err := h.s.SingIn(driver)
+	token, err := h.s.SingIn(d.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrIncorrectPassword) {
 			body := auth.PostDriverSingInForbiddenBody{
@@ -90,7 +96,7 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 		}
 		accessToken := token[1]
 
-		_, err := service.Verify(accessToken, h.Cfg)
+		id, err := service.Verify(accessToken, h.Cfg)
 		if err != nil {
 			if errors.Is(err, jwt.ValidationError{Errors: jwt.ValidationErrorExpired}) {
 				rw.WriteHeader(http.StatusUnauthorized)
@@ -140,10 +146,20 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 			rw.Write(jsonResp)
 			return
 		}
-
+		ctx := ContextWithId(r.Context(), id)
+		r = r.WithContext(ctx)
 		handler.ServeHTTP(rw, r)
 
 	})
+}
+
+func ContextWithId(ctx context.Context, id string) context.Context {
+	return context.WithValue(ctx, userId, id)
+}
+
+func IdFromContext(ctx context.Context) (string, bool) {
+	id, ok := ctx.Value(userId).(string)
+	return id, ok
 }
 
 func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Responder {
@@ -171,7 +187,7 @@ func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Respond
 	driver := model.Driver{
 		ID: uuid,
 	}
-	t, err := h.s.Refresh(driver)
+	t, err := h.s.Refresh(token.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrIncorrectPassword) {
 			body := auth.PostDriverSingInForbiddenBody{

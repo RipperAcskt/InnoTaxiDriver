@@ -10,6 +10,7 @@ import (
 type UserRepo interface {
 	GetUserById(ctx context.Context, id string) (*model.Driver, error)
 	UpdateDriverById(ctx context.Context, driver model.Driver) error
+	DeleteDriverById(ctx context.Context, id string) error
 }
 
 type UserService struct {
@@ -27,4 +28,8 @@ func (user *UserService) GetProfile(ctx context.Context, id string) (*model.Driv
 
 func (user *UserService) UpdateProfile(ctx context.Context, driver model.Driver) error {
 	return user.UpdateDriverById(ctx, driver)
+}
+
+func (user *UserService) DeleteProfile(ctx context.Context, id string) error {
+	return user.DeleteDriverById(ctx, id)
 }

@@ -86,3 +86,29 @@ func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
 	}
 	return driver.NewPutDriverOK()
 }
+
+func (h *Handler) DeleteProfile(d driver.DeleteDriverParams) middleware.Responder {
+	id, ok := IdFromContext(d.HTTPRequest.Context())
+	if !ok {
+		body := driver.DeleteDriverBadRequestBody{
+			Error: fmt.Errorf("bad access token").Error(),
+		}
+		return driver.NewDeleteDriverBadRequest().WithPayload(&body)
+	}
+
+	err := h.s.DeleteProfile(d.HTTPRequest.Context(), id)
+	if err != nil {
+		if errors.Is(err, service.ErrDriverDoesNotExists) {
+			body := driver.DeleteDriverBadRequestBody{
+				Error: err.Error(),
+			}
+			return driver.NewDeleteDriverBadRequest().WithPayload(&body)
+		}
+
+		body := driver.DeleteDriverInternalServerErrorBody{
+			Error: fmt.Errorf("delete profile failed: %w", err).Error(),
+		}
+		return driver.NewDeleteDriverInternalServerError().WithPayload(&body)
+	}
+	return driver.NewDeleteDriverOK()
+}

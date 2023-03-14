@@ -45,6 +45,9 @@ func NewInnoTaxiDriverAPIAPI(spec *loads.Document) *InnoTaxiDriverAPIAPI {
 
 		JSONProducer: runtime.JSONProducer(),
 
+		DriverDeleteDriverHandler: driver.DeleteDriverHandlerFunc(func(params driver.DeleteDriverParams) middleware.Responder {
+			return middleware.NotImplemented("operation driver.DeleteDriver has not yet been implemented")
+		}),
 		DriverGetDriverHandler: driver.GetDriverHandlerFunc(func(params driver.GetDriverParams) middleware.Responder {
 			return middleware.NotImplemented("operation driver.GetDriver has not yet been implemented")
 		}),
@@ -96,6 +99,8 @@ type InnoTaxiDriverAPIAPI struct {
 	//   - application/json
 	JSONProducer runtime.Producer
 
+	// DriverDeleteDriverHandler sets the operation handler for the delete driver operation
+	DriverDeleteDriverHandler driver.DeleteDriverHandler
 	// DriverGetDriverHandler sets the operation handler for the get driver operation
 	DriverGetDriverHandler driver.GetDriverHandler
 	// AuthPostDriverRefreshHandler sets the operation handler for the post driver refresh operation
@@ -183,6 +188,9 @@ func (o *InnoTaxiDriverAPIAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
+	if o.DriverDeleteDriverHandler == nil {
+		unregistered = append(unregistered, "driver.DeleteDriverHandler")
+	}
 	if o.DriverGetDriverHandler == nil {
 		unregistered = append(unregistered, "driver.GetDriverHandler")
 	}
@@ -286,6 +294,10 @@ func (o *InnoTaxiDriverAPIAPI) initHandlerCache() {
 		o.handlers = make(map[string]map[string]http.Handler)
 	}
 
+	if o.handlers["DELETE"] == nil {
+		o.handlers["DELETE"] = make(map[string]http.Handler)
+	}
+	o.handlers["DELETE"]["/driver"] = driver.NewDeleteDriver(o.context, o.DriverDeleteDriverHandler)
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}

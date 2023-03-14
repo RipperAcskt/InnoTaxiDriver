@@ -62,10 +62,12 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 
 	api.DriverGetDriverHandler = driver.GetDriverHandlerFunc(handler.GetProfile)
 	api.DriverPutDriverHandler = driver.PutDriverHandlerFunc(handler.UpdateProfile)
+	api.DriverDeleteDriverHandler = driver.DeleteDriverHandlerFunc(handler.DeleteProfile)
 
 	api.AddMiddlewareFor("POST", "/driver/refresh", handler.VerifyToken)
 	api.AddMiddlewareFor("GET", "/driver", handler.VerifyToken)
 	api.AddMiddlewareFor("PUT", "/driver", handler.VerifyToken)
+	api.AddMiddlewareFor("DELETE", "/driver", handler.VerifyToken)
 
 	api.JSONConsumer = runtime.JSONConsumer()
 

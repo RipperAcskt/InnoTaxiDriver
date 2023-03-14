@@ -57,13 +57,16 @@ func (c *Cassandra) CreateDriver(ctx context.Context, driver model.Driver) error
 	defer cancel()
 
 	var name string
-	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE (phone_number = ? OR email = ?) AND status = ?", driver.PhoneNumber, driver.Email, model.StatusCreated).WithContext(queryCtx).Scan(&name)
+	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", driver.PhoneNumber, model.StatusCreated).WithContext(queryCtx).Scan(&name)
 	if err == nil {
 		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrDriverAlreadyExists)
-
+	}
+	err = c.session.Query("SELECT name FROM innotaxi.drivers WHERE email = ? AND status = ? ALLOW FILTERING", driver.Email, model.StatusCreated).WithContext(queryCtx).Scan(&name)
+	if err == nil {
+		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrDriverAlreadyExists)
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, taxi_type, status) VALUES(?, ?, ?, ?, ?, 0.0, ?, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), driver.TaxiType, model.StatusCreated).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, taxi_type, status) VALUES(?, ?, ?, ?, ?, 0.0, ?, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), driver.TaxiType, model.StatusCreated).WithContext(queryCtx).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}
@@ -132,4 +135,12 @@ func (c *Cassandra) CreateRequest(driver model.Driver) (string, []any) {
 	r += "WHERE id = ?"
 	val = append(val, driver.ID.String())
 	return r, val
+}
+
+func (c *Cassandra) DeleteDriverById(ctx context.Context, id string) error {
+	err := c.session.Query("UPDATE innotaxi.drivers SET status = ? WHERE id = ?", model.StatusDeleted, id).WithContext(ctx).Exec()
+	if err != nil {
+		return fmt.Errorf("exec context failed: %w", err)
+	}
+	return nil
 }

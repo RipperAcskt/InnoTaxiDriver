@@ -29,7 +29,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 		TaxiType:    d.Input.TaxiType,
 	}
 
-	err := h.s.SingUp(driver)
+	err := h.s.SingUp(d.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrDriverDoesNotExists) {
 			body := auth.PostDriverSingUpBadRequestBody{
@@ -56,7 +56,7 @@ func (h *Handler) SingIn(d auth.PostDriverSingInParams) middleware.Responder {
 		Password:    d.Input.Password,
 	}
 
-	token, err := h.s.SingIn(driver)
+	token, err := h.s.SingIn(d.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrIncorrectPassword) {
 			body := auth.PostDriverSingInForbiddenBody{
@@ -187,7 +187,7 @@ func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Respond
 	driver := model.Driver{
 		ID: uuid,
 	}
-	t, err := h.s.Refresh(driver)
+	t, err := h.s.Refresh(token.HTTPRequest.Context(), driver)
 	if err != nil {
 		if errors.Is(err, service.ErrIncorrectPassword) {
 			body := auth.PostDriverSingInForbiddenBody{

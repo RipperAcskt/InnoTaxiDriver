@@ -8,6 +8,7 @@ import (
 )
 
 type UserRepo interface {
+	GetUserById(ctx context.Context, id string) (*model.Driver, error)
 	UpdateDriverById(ctx context.Context, driver model.Driver) error
 }
 
@@ -18,6 +19,10 @@ type UserService struct {
 
 func NewUserSevice(cassandra UserRepo, cfg *config.Config) *UserService {
 	return &UserService{cassandra, cfg}
+}
+
+func (user *UserService) GetProfile(ctx context.Context, id string) (*model.Driver, error) {
+	return user.GetUserById(ctx, id)
 }
 
 func (user *UserService) UpdateProfile(ctx context.Context, driver model.Driver) error {

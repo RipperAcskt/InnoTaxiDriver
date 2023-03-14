@@ -68,7 +68,11 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 	api.AddMiddlewareFor("GET", "/driver", handler.VerifyToken)
 	api.AddMiddlewareFor("PUT", "/driver", handler.VerifyToken)
 	api.AddMiddlewareFor("DELETE", "/driver", handler.VerifyToken)
+
 	api.AddMiddlewareFor("POST", "/drievr", handler.Recovery)
+	api.AddMiddlewareFor("GET", "/drievr", handler.Recovery)
+	api.AddMiddlewareFor("PUT", "/drievr", handler.Recovery)
+	api.AddMiddlewareFor("DELETE", "/drievr", handler.Recovery)
 
 	api.JSONConsumer = runtime.JSONConsumer()
 

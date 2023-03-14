@@ -104,3 +104,32 @@ func (c *Cassandra) GetUserById(ctx context.Context, id string) (*model.Driver, 
 	driver.ID = uuid.UUID(driverID)
 	return driver, err
 }
+
+func (c *Cassandra) UpdateDriverById(ctx context.Context, driver model.Driver) error {
+	r, val := c.CreateRequest(driver)
+	err := c.session.Query(r, val...).WithContext(ctx).Exec()
+	if err != nil {
+		return fmt.Errorf("exec context failed: %w", err)
+	}
+	return nil
+}
+
+func (c *Cassandra) CreateRequest(driver model.Driver) (string, []any) {
+	r := "UPDATE innotaxi.drivers SET "
+	var val []any
+	if driver.Name != "" {
+		r += "name = ? "
+		val = append(val, driver.Name)
+	}
+	if driver.PhoneNumber != "" {
+		r += "phone_number = ? "
+		val = append(val, driver.PhoneNumber)
+	}
+	if driver.Email != "" {
+		r += "email = ? "
+		val = append(val, driver.Email)
+	}
+	r += "WHERE id = ?"
+	val = append(val, driver.ID.String())
+	return r, val
+}

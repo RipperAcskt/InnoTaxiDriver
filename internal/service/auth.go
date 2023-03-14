@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"crypto/sha1"
 	"fmt"
 	"time"
@@ -22,12 +23,12 @@ var (
 )
 
 type AuthRepo interface {
-	CreateDriver(driver model.Driver) error
-	CheckUserByPhoneNumber(phone_number string) (*model.Driver, error)
+	CreateDriver(ctx context.Context, driver model.Driver) error
+	CheckUserByPhoneNumber(ctx context.Context, phone_number string) (*model.Driver, error)
 }
 
 type UserSerivce interface {
-	GetJWT(id uuid.UUID) (*user.Token, error)
+	GetJWT(ctx context.Context, id uuid.UUID) (*user.Token, error)
 }
 
 type AuthService struct {
@@ -40,14 +41,14 @@ func NewAuthSevice(cassandra AuthRepo, user UserSerivce, cfg *config.Config) *Au
 	return &AuthService{cassandra, user, cfg}
 }
 
-func (s *AuthService) SingUp(driver model.Driver) error {
+func (s *AuthService) SingUp(ctx context.Context, driver model.Driver) error {
 	var err error
 	driver.Password, err = s.GenerateHash(driver.Password)
 	if err != nil {
 		return fmt.Errorf("generate hash failed: %w", err)
 	}
 
-	err = s.CreateDriver(driver)
+	err = s.CreateDriver(ctx, driver)
 	if err != nil {
 		return err
 	}
@@ -63,8 +64,8 @@ func (s *AuthService) GenerateHash(password string) (string, error) {
 	return string(hash.Sum([]byte(s.cfg.SALT))), nil
 }
 
-func (s *AuthService) SingIn(driver model.Driver) (*user.Token, error) {
-	driverDB, err := s.CheckUserByPhoneNumber(driver.PhoneNumber)
+func (s *AuthService) SingIn(ctx context.Context, driver model.Driver) (*user.Token, error) {
+	driverDB, err := s.CheckUserByPhoneNumber(ctx, driver.PhoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("check user by phone number failed: %w", err)
 	}
@@ -79,7 +80,7 @@ func (s *AuthService) SingIn(driver model.Driver) (*user.Token, error) {
 		return nil, ErrIncorrectPassword
 	}
 
-	token, err := s.user.GetJWT(driverDB.ID)
+	token, err := s.user.GetJWT(ctx, driverDB.ID)
 	if err != nil {
 		return nil, fmt.Errorf("get jwt failed: %w", err)
 	}
@@ -114,8 +115,8 @@ func Verify(token string, cfg *config.Config) (string, error) {
 	return string(id.(string)), nil
 }
 
-func (s *AuthService) Refresh(driver model.Driver) (*user.Token, error) {
-	token, err := s.user.GetJWT(driver.ID)
+func (s *AuthService) Refresh(ctx context.Context, driver model.Driver) (*user.Token, error) {
+	token, err := s.user.GetJWT(ctx, driver.ID)
 	if err != nil {
 		return nil, fmt.Errorf("get jwt failed: %w", err)
 	}

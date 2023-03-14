@@ -48,6 +48,9 @@ func NewInnoTaxiDriverAPIAPI(spec *loads.Document) *InnoTaxiDriverAPIAPI {
 		DriverDeleteDriverHandler: driver.DeleteDriverHandlerFunc(func(params driver.DeleteDriverParams) middleware.Responder {
 			return middleware.NotImplemented("operation driver.DeleteDriver has not yet been implemented")
 		}),
+		DriverGetDriverHandler: driver.GetDriverHandlerFunc(func(params driver.GetDriverParams) middleware.Responder {
+			return middleware.NotImplemented("operation driver.GetDriver has not yet been implemented")
+		}),
 		AuthPostDriverRefreshHandler: auth.PostDriverRefreshHandlerFunc(func(params auth.PostDriverRefreshParams) middleware.Responder {
 			return middleware.NotImplemented("operation auth.PostDriverRefresh has not yet been implemented")
 		}),
@@ -56,6 +59,9 @@ func NewInnoTaxiDriverAPIAPI(spec *loads.Document) *InnoTaxiDriverAPIAPI {
 		}),
 		AuthPostDriverSingUpHandler: auth.PostDriverSingUpHandlerFunc(func(params auth.PostDriverSingUpParams) middleware.Responder {
 			return middleware.NotImplemented("operation auth.PostDriverSingUp has not yet been implemented")
+		}),
+		DriverPutDriverHandler: driver.PutDriverHandlerFunc(func(params driver.PutDriverParams) middleware.Responder {
+			return middleware.NotImplemented("operation driver.PutDriver has not yet been implemented")
 		}),
 	}
 }
@@ -95,12 +101,16 @@ type InnoTaxiDriverAPIAPI struct {
 
 	// DriverDeleteDriverHandler sets the operation handler for the delete driver operation
 	DriverDeleteDriverHandler driver.DeleteDriverHandler
+	// DriverGetDriverHandler sets the operation handler for the get driver operation
+	DriverGetDriverHandler driver.GetDriverHandler
 	// AuthPostDriverRefreshHandler sets the operation handler for the post driver refresh operation
 	AuthPostDriverRefreshHandler auth.PostDriverRefreshHandler
 	// AuthPostDriverSingInHandler sets the operation handler for the post driver sing in operation
 	AuthPostDriverSingInHandler auth.PostDriverSingInHandler
 	// AuthPostDriverSingUpHandler sets the operation handler for the post driver sing up operation
 	AuthPostDriverSingUpHandler auth.PostDriverSingUpHandler
+	// DriverPutDriverHandler sets the operation handler for the put driver operation
+	DriverPutDriverHandler driver.PutDriverHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -181,6 +191,9 @@ func (o *InnoTaxiDriverAPIAPI) Validate() error {
 	if o.DriverDeleteDriverHandler == nil {
 		unregistered = append(unregistered, "driver.DeleteDriverHandler")
 	}
+	if o.DriverGetDriverHandler == nil {
+		unregistered = append(unregistered, "driver.GetDriverHandler")
+	}
 	if o.AuthPostDriverRefreshHandler == nil {
 		unregistered = append(unregistered, "auth.PostDriverRefreshHandler")
 	}
@@ -189,6 +202,9 @@ func (o *InnoTaxiDriverAPIAPI) Validate() error {
 	}
 	if o.AuthPostDriverSingUpHandler == nil {
 		unregistered = append(unregistered, "auth.PostDriverSingUpHandler")
+	}
+	if o.DriverPutDriverHandler == nil {
+		unregistered = append(unregistered, "driver.PutDriverHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -282,6 +298,10 @@ func (o *InnoTaxiDriverAPIAPI) initHandlerCache() {
 		o.handlers["DELETE"] = make(map[string]http.Handler)
 	}
 	o.handlers["DELETE"]["/driver"] = driver.NewDeleteDriver(o.context, o.DriverDeleteDriverHandler)
+	if o.handlers["GET"] == nil {
+		o.handlers["GET"] = make(map[string]http.Handler)
+	}
+	o.handlers["GET"]["/driver"] = driver.NewGetDriver(o.context, o.DriverGetDriverHandler)
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
@@ -294,6 +314,10 @@ func (o *InnoTaxiDriverAPIAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/driver/sing-up"] = auth.NewPostDriverSingUp(o.context, o.AuthPostDriverSingUpHandler)
+	if o.handlers["PUT"] == nil {
+		o.handlers["PUT"] = make(map[string]http.Handler)
+	}
+	o.handlers["PUT"]["/driver"] = driver.NewPutDriver(o.context, o.DriverPutDriverHandler)
 }
 
 // Serve creates a http handler to serve the API over HTTP

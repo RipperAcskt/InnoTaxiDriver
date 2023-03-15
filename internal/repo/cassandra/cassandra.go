@@ -73,7 +73,7 @@ func (c *Cassandra) CreateDriver(ctx context.Context, driver model.Driver) error
 	return nil
 }
 
-func (c *Cassandra) CheckUserByPhoneNumber(ctx context.Context, phone_number string) (*model.Driver, error) {
+func (c *Cassandra) CheckDriverByPhoneNumber(ctx context.Context, phone_number string) (*model.Driver, error) {
 	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -91,7 +91,7 @@ func (c *Cassandra) CheckUserByPhoneNumber(ctx context.Context, phone_number str
 	return &driver, nil
 }
 
-func (c *Cassandra) GetUserById(ctx context.Context, id string) (*model.Driver, error) {
+func (c *Cassandra) GetDriverById(ctx context.Context, id string) (*model.Driver, error) {
 	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 

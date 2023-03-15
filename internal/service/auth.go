@@ -24,7 +24,7 @@ var (
 
 type AuthRepo interface {
 	CreateDriver(ctx context.Context, driver model.Driver) error
-	CheckUserByPhoneNumber(ctx context.Context, phone_number string) (*model.Driver, error)
+	CheckDriverByPhoneNumber(ctx context.Context, phone_number string) (*model.Driver, error)
 }
 
 type UserSerivce interface {
@@ -65,7 +65,7 @@ func (s *AuthService) GenerateHash(password string) (string, error) {
 }
 
 func (s *AuthService) SingIn(ctx context.Context, driver model.Driver) (*user.Token, error) {
-	driverDB, err := s.CheckUserByPhoneNumber(ctx, driver.PhoneNumber)
+	driverDB, err := s.CheckDriverByPhoneNumber(ctx, driver.PhoneNumber)
 	if err != nil {
 		return nil, fmt.Errorf("check user by phone number failed: %w", err)
 	}

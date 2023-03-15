@@ -5,7 +5,8 @@ import (
 )
 
 //go:generate mockgen -destination=mocks/mock_auth.go -package=mocks github.com/RipperAcskt/innotaxidriver/internal/service AuthRepo
-//go:generate mockgen -destination=mocks/mock_user.go -package=mocks github.com/RipperAcskt/innotaxidriver/internal/service UserRepo
+//go:generate mockgen -destination=mocks/mock_user.go -package=mocks github.com/RipperAcskt/innotaxidriver/internal/service DriverRepo
+//go:generate mockgen -destination=mocks/mock_jwt.go -package=mocks github.com/RipperAcskt/innotaxidriver/internal/service UserSerivce
 type Repo interface {
 	DriverRepo
 	AuthRepo

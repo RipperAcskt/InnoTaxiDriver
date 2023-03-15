@@ -35,19 +35,19 @@ func (m *MockAuthRepo) EXPECT() *MockAuthRepoMockRecorder {
 	return m.recorder
 }
 
-// CheckUserByPhoneNumber mocks base method.
-func (m *MockAuthRepo) CheckUserByPhoneNumber(arg0 context.Context, arg1 string) (*model.Driver, error) {
+// CheckDriverByPhoneNumber mocks base method.
+func (m *MockAuthRepo) CheckDriverByPhoneNumber(arg0 context.Context, arg1 string) (*model.Driver, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CheckUserByPhoneNumber", arg0, arg1)
+	ret := m.ctrl.Call(m, "CheckDriverByPhoneNumber", arg0, arg1)
 	ret0, _ := ret[0].(*model.Driver)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// CheckUserByPhoneNumber indicates an expected call of CheckUserByPhoneNumber.
-func (mr *MockAuthRepoMockRecorder) CheckUserByPhoneNumber(arg0, arg1 interface{}) *gomock.Call {
+// CheckDriverByPhoneNumber indicates an expected call of CheckDriverByPhoneNumber.
+func (mr *MockAuthRepoMockRecorder) CheckDriverByPhoneNumber(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckUserByPhoneNumber", reflect.TypeOf((*MockAuthRepo)(nil).CheckUserByPhoneNumber), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckDriverByPhoneNumber", reflect.TypeOf((*MockAuthRepo)(nil).CheckDriverByPhoneNumber), arg0, arg1)
 }
 
 // CreateDriver mocks base method.

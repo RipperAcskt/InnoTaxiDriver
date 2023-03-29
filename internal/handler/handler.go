@@ -150,7 +150,10 @@ func (h *Handler) Recovery(handler http.Handler) http.Handler {
 		log, ok := LoggerFromContext(r.Context())
 		if !ok {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(fmt.Errorf("bad access token").Error()))
+			_, err := w.Write([]byte(fmt.Errorf("bad access token").Error()))
+			if err != nil {
+				log.Error("Recovery", zap.Error(fmt.Errorf("write  failed: %w", err)))
+			}
 			return
 		}
 
@@ -165,7 +168,10 @@ func (h *Handler) Recovery(handler http.Handler) http.Handler {
 
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write(jsonBody)
+				_, erro := w.Write(jsonBody)
+				if err != nil {
+					log.Error("Recovery", zap.Error(fmt.Errorf("write  failed: %w", erro)))
+				}
 			}
 		}()
 

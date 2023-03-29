@@ -125,7 +125,10 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 				}
 				return
 			}
-			rw.Write(jsonResp)
+			_, err = rw.Write(jsonResp)
+			if err != nil {
+				log.Error("verify", zap.Error(fmt.Errorf("write  failed: %w", err)))
+			}
 			return
 		}
 		accessToken := token[1]
@@ -160,10 +163,16 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 					log.Error("verefy", zap.Error(fmt.Errorf("json marshal failed: %w", err)))
 
 					rw.WriteHeader(http.StatusInternalServerError)
-					rw.Write([]byte(err.Error()))
+					_, err := rw.Write([]byte(err.Error()))
+					if err != nil {
+						log.Error("verify", zap.Error(fmt.Errorf("write  failed: %w", err)))
+					}
 					return
 				}
-				rw.Write(jsonResp)
+				_, err = rw.Write(jsonResp)
+				if err != nil {
+					log.Error("verify", zap.Error(fmt.Errorf("write  failed: %w", err)))
+				}
 				return
 			}
 			if errors.Is(err, service.ErrTokenId) {
@@ -174,10 +183,16 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 					log.Error("verefy", zap.Error(fmt.Errorf("json marshal failed: %w", err)))
 
 					rw.WriteHeader(http.StatusInternalServerError)
-					rw.Write([]byte(err.Error()))
+					_, err := rw.Write([]byte(err.Error()))
+					if err != nil {
+						log.Error("verify", zap.Error(fmt.Errorf("write  failed: %w", err)))
+					}
 					return
 				}
-				rw.Write(jsonResp)
+				_, err = rw.Write(jsonResp)
+				if err != nil {
+					log.Error("verify", zap.Error(fmt.Errorf("write  failed: %w", err)))
+				}
 				return
 			}
 
@@ -188,10 +203,16 @@ func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 				log.Error("verefy", zap.Error(fmt.Errorf("json marshal failed: %w", err)))
 
 				rw.WriteHeader(http.StatusInternalServerError)
-				rw.Write([]byte(err.Error()))
+				_, err := rw.Write([]byte(err.Error()))
+				if err != nil {
+					log.Error("verify", zap.Error(fmt.Errorf("write  failed: %w", err)))
+				}
 				return
 			}
-			rw.Write(jsonResp)
+			_, err = rw.Write(jsonResp)
+			if err != nil {
+				log.Error("verify", zap.Error(fmt.Errorf("write  failed: %w", err)))
+			}
 			return
 		}
 		ctx := ContextWithId(r.Context(), id)

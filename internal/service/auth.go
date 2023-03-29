@@ -84,7 +84,6 @@ func (s *AuthService) SingIn(ctx context.Context, driver model.Driver) (*user.To
 	if err != nil {
 		return nil, fmt.Errorf("get jwt failed: %w", err)
 	}
-
 	return token, nil
 }
 
@@ -112,7 +111,11 @@ func Verify(token string, cfg *config.Config) (string, error) {
 	if !ok {
 		return "", ErrTokenId
 	}
-	return string(id.(string)), nil
+	str, ok := id.(string)
+	if !ok {
+		return "", ErrTokenId
+	}
+	return string(str), nil
 }
 
 func (s *AuthService) Refresh(ctx context.Context, driver model.Driver) (*user.Token, error) {

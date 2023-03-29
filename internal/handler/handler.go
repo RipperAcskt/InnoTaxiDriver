@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
@@ -14,6 +13,7 @@ import (
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations/driver"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type Handler struct {
@@ -26,6 +26,14 @@ func New(s *service.Service, cfg *config.Config) *Handler {
 }
 
 func (h *Handler) GetProfile(d driver.GetDriverParams) middleware.Responder {
+	log, ok := LoggerFromContext(d.HTTPRequest.Context())
+	if !ok {
+		body := driver.GetDriverInternalServerErrorBody{
+			Error: fmt.Errorf("bad access token").Error(),
+		}
+		return driver.NewGetDriverInternalServerError().WithPayload(&body)
+	}
+
 	id, ok := IdFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := driver.GetDriverBadRequestBody{
@@ -43,6 +51,7 @@ func (h *Handler) GetProfile(d driver.GetDriverParams) middleware.Responder {
 			return driver.NewGetDriverBadRequest().WithPayload(&body)
 		}
 
+		log.Error("/driver", zap.Error(fmt.Errorf("get profile failed: %w", err)))
 		body := driver.GetDriverInternalServerErrorBody{
 			Error: fmt.Errorf("get profile failed: %w", err).Error(),
 		}
@@ -59,6 +68,14 @@ func (h *Handler) GetProfile(d driver.GetDriverParams) middleware.Responder {
 }
 
 func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
+	log, ok := LoggerFromContext(d.HTTPRequest.Context())
+	if !ok {
+		body := driver.PutDriverInternalServerErrorBody{
+			Error: fmt.Errorf("bad access token").Error(),
+		}
+		return driver.NewPutDriverInternalServerError().WithPayload(&body)
+	}
+
 	id, ok := IdFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := driver.PutDriverBadRequestBody{
@@ -83,6 +100,8 @@ func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
 			return driver.NewPutDriverBadRequest().WithPayload(&body)
 		}
 
+		log.Error("/driver", zap.Error(fmt.Errorf("update profile failed: %w", err)))
+
 		body := driver.PutDriverInternalServerErrorBody{
 			Error: fmt.Errorf("update profile failed: %w", err).Error(),
 		}
@@ -92,6 +111,14 @@ func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
 }
 
 func (h *Handler) DeleteProfile(d driver.DeleteDriverParams) middleware.Responder {
+	log, ok := LoggerFromContext(d.HTTPRequest.Context())
+	if !ok {
+		body := driver.DeleteDriverInternalServerErrorBody{
+			Error: fmt.Errorf("bad access token").Error(),
+		}
+		return driver.NewDeleteDriverInternalServerError().WithPayload(&body)
+	}
+
 	id, ok := IdFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := driver.DeleteDriverBadRequestBody{
@@ -109,6 +136,7 @@ func (h *Handler) DeleteProfile(d driver.DeleteDriverParams) middleware.Responde
 			return driver.NewDeleteDriverBadRequest().WithPayload(&body)
 		}
 
+		log.Error("/driver", zap.Error(fmt.Errorf("delete profile failed: %w", err)))
 		body := driver.DeleteDriverInternalServerErrorBody{
 			Error: fmt.Errorf("delete profile failed: %w", err).Error(),
 		}
@@ -119,11 +147,18 @@ func (h *Handler) DeleteProfile(d driver.DeleteDriverParams) middleware.Responde
 
 func (h *Handler) Recovery(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log, ok := LoggerFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(fmt.Errorf("bad access token").Error()))
+			return
+		}
 
 		defer func() {
 			err := recover()
 			if err != nil {
-				log.Print(err)
+				log.Error("recovery", zap.Any("error", err))
+
 				jsonBody, _ := json.Marshal(map[string]string{
 					"error": "internal server error",
 				})

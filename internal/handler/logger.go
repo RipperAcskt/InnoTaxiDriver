@@ -24,10 +24,16 @@ func (h *Handler) Log(handler http.Handler) http.Handler {
 			jsonResp, err := json.Marshal(resp)
 			if err != nil {
 				rw.WriteHeader(http.StatusInternalServerError)
-				rw.Write([]byte(err.Error()))
+				_, err := rw.Write([]byte(err.Error()))
+				if err != nil {
+					log.Error("Log", zap.Error(fmt.Errorf("write  failed: %w", err)))
+				}
 				return
 			}
-			rw.Write(jsonResp)
+			_, err = rw.Write(jsonResp)
+			if err != nil {
+				log.Error("Log", zap.Error(fmt.Errorf("write  failed: %w", err)))
+			}
 			return
 		}
 		r = r.WithContext(ContextWithLogger(r.Context(), log))

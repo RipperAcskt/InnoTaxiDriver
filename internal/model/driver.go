@@ -3,7 +3,8 @@ package model
 import "github.com/google/uuid"
 
 const (
-	StatusCreated = "created"
+	StatusFree    = "free"
+	StatusBusy    = "busy"
 	StatusDeleted = "deleted"
 )
 

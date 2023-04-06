@@ -55,7 +55,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 	}
 
 	body := auth.PostDriverSingUpCreatedBody{
-		Status: model.StatusCreated,
+		Status: "created",
 	}
 	return auth.NewPostDriverSingUpCreated().WithPayload(&body)
 }

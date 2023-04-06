@@ -14,7 +14,7 @@ import (
 
 	"github.com/RipperAcskt/innotaxidriver/config"
 	user "github.com/RipperAcskt/innotaxidriver/internal/client"
-	"github.com/RipperAcskt/innotaxidriver/internal/handler"
+	handler "github.com/RipperAcskt/innotaxidriver/internal/handler/restapi"
 	"github.com/RipperAcskt/innotaxidriver/internal/repo/cassandra"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
 	"github.com/RipperAcskt/innotaxidriver/restapi/operations"

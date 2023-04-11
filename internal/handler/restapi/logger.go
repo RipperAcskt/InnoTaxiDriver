@@ -36,6 +36,7 @@ func (h *Handler) Log(handler http.Handler) http.Handler {
 			}
 			return
 		}
+
 		r = r.WithContext(ContextWithLogger(r.Context(), log))
 
 		handler.ServeHTTP(rw, r)
@@ -48,7 +49,8 @@ func ContextWithLogger(ctx context.Context, log *zap.Logger) context.Context {
 	return context.WithValue(ctx, logger, log)
 }
 
-func LoggerFromContext(ctx context.Context) (zap.Logger, bool) {
-	log, ok := ctx.Value(logger).(zap.Logger)
+func LoggerFromContext(ctx context.Context) (*zap.Logger, bool) {
+	log, ok := ctx.Value(logger).(*zap.Logger)
+	fmt.Println(log, ok)
 	return log, ok
 }

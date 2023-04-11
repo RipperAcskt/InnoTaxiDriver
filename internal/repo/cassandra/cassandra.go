@@ -145,19 +145,61 @@ func (c *Cassandra) DeleteDriverById(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *Cassandra) FindFree(ctx context.Context) (*model.Driver, error) {
+func (c *Cassandra) UpdateStatus(ctx context.Context, drivers []*model.Driver) ([]*model.Driver, error) {
 	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	driver := &model.Driver{}
-	var driverID gocql.UUID
-	err := c.session.Query("SELECT id, name, phone_number, email, raiting FROM innotaxi.drivers WHERE status = ? ALLOW FILTERING", model.StatusFree).WithContext(queryCtx).Scan(&driverID, &driver.Name, &driver.PhoneNumber, &driver.Email, &driver.Raiting)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, service.ErrDriverDoesNotExists
+	var toUpdate []uuid.UUID
+	scanner := c.session.Query("SELECT id FROM innotaxi.drivers").WithContext(queryCtx).Iter().Scanner()
+	for scanner.Next() {
+		var driverID gocql.UUID
+		err := scanner.Scan(&driverID)
+		if err != nil {
+			return nil, fmt.Errorf("scan id failed: %w", err)
 		}
-		return nil, fmt.Errorf("query row context failed: %w", err)
+		for _, driver := range drivers {
+			if driver.ID == uuid.UUID(driverID) {
+				toUpdate = append(toUpdate, uuid.UUID(driverID))
+			}
+		}
+
 	}
-	driver.ID = uuid.UUID(driverID)
-	return driver, err
+
+	query, val := c.CreateUpdateRequest(toUpdate)
+	err := c.session.Query(query, val...).WithContext(queryCtx).Exec()
+	if err != nil {
+		return nil, fmt.Errorf("query context failed: %w", err)
+	}
+
+	drivers = make([]*model.Driver, 0)
+	var driverID gocql.UUID
+	scanner = c.session.Query("SELECT id, name, phone_number, taxi_type, raiting FROM innotaxi.drivers WHERE status = ? ALLOW FILTERING", model.StatusFree).WithContext(queryCtx).Iter().Scanner()
+	for scanner.Next() {
+		driver := &model.Driver{}
+		err := scanner.Scan(&driverID, &driver.Name, &driver.PhoneNumber, &driver.TaxiType, &driver.Raiting)
+		if err != nil {
+			return nil, fmt.Errorf("scan select all failed: %w", err)
+		}
+		driver.ID = uuid.UUID(driverID)
+		drivers = append(drivers, driver)
+	}
+
+	return drivers, err
+}
+
+func (c *Cassandra) CreateUpdateRequest(ids []uuid.UUID) (string, []any) {
+	s := "UPDATE innotaxi.drivers SET status = ? WHERE id in ("
+	var val []any
+	val = append(val, model.StatusBusy)
+	for i, id := range ids {
+		tmp := gocql.UUID(id)
+		val = append(val, tmp)
+		if i == 0 {
+			s += "?"
+			continue
+		}
+		s += ",? "
+	}
+	s += ")"
+	return s, val
 }

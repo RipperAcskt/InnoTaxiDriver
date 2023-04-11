@@ -4,16 +4,18 @@ package restapi
 
 import (
 	"crypto/tls"
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/golang-migrate/migrate/v4"
+	"go.uber.org/zap"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
 	user "github.com/RipperAcskt/innotaxidriver/internal/client"
+	"github.com/RipperAcskt/innotaxidriver/internal/handler/grpc"
 	handler "github.com/RipperAcskt/innotaxidriver/internal/handler/restapi"
 	"github.com/RipperAcskt/innotaxidriver/internal/repo/cassandra"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
@@ -32,25 +34,29 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 	// configure the api here
 	api.ServeError = errors.ServeError
 	api.UseSwaggerUI()
+	log, err := zap.NewProduction()
+	if err != nil {
+		log.Sugar().Fatalf("config new failed: %v", err)
+	}
 
 	cfg, err := config.New()
 	if err != nil {
-		log.Fatalf("config new failed: %v", err)
+		log.Sugar().Fatalf("config new failed: %v", err)
 	}
 
 	cassandra, err := cassandra.New(cfg)
 	if err != nil {
-		log.Fatalf("cassandra new failed: %v", err)
+		log.Sugar().Fatalf("cassandra new failed: %v", err)
 	}
 
 	err = cassandra.M.Up()
 	if err != migrate.ErrNoChange && err != nil {
-		log.Fatalf("migrate up failed: %v", err)
+		log.Sugar().Fatalf("migrate up failed: %v", err)
 	}
 
 	client, err := user.New(cfg)
 	if err != nil {
-		log.Fatalf("grpc new failed: %v", err)
+		log.Sugar().Fatalf("grpc new failed: %v", err)
 	}
 
 	service := service.New(cassandra, client, cfg)
@@ -69,10 +75,17 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 	api.AddMiddlewareFor("PUT", "/driver", handler.VerifyToken)
 	api.AddMiddlewareFor("DELETE", "/driver", handler.VerifyToken)
 
-	api.AddMiddlewareFor("POST", "/drievr", handler.Recovery)
-	api.AddMiddlewareFor("GET", "/drievr", handler.Recovery)
-	api.AddMiddlewareFor("PUT", "/drievr", handler.Recovery)
-	api.AddMiddlewareFor("DELETE", "/drievr", handler.Recovery)
+	api.AddMiddlewareFor("POST", "/driver", handler.Recovery)
+	api.AddMiddlewareFor("GET", "/driver", handler.Recovery)
+	api.AddMiddlewareFor("PUT", "/driver", handler.Recovery)
+	api.AddMiddlewareFor("DELETE", "/driver", handler.Recovery)
+
+	api.AddMiddlewareFor("POST", "/driver/sing-up", handler.Log)
+	api.AddMiddlewareFor("POST", "/driver/sing-in", handler.Log)
+	api.AddMiddlewareFor("POST", "/driver/refresh", handler.Log)
+	api.AddMiddlewareFor("GET", "/driver", handler.Log)
+	api.AddMiddlewareFor("PUT", "/driver", handler.Log)
+	api.AddMiddlewareFor("DELETE", "/driver", handler.Log)
 
 	api.JSONConsumer = runtime.JSONConsumer()
 
@@ -85,6 +98,14 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 	api.PreServerShutdown = func() {}
 
 	api.ServerShutdown = func() {}
+
+	grpcServer := grpc.New(service.Order, cfg)
+	go func() {
+		if err := grpcServer.Run(); err != nil {
+			log.Error(fmt.Sprintf("grpc server run failed: %v", err))
+			return
+		}
+	}()
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
 }

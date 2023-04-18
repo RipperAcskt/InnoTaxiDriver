@@ -51,6 +51,5 @@ func ContextWithLogger(ctx context.Context, log *zap.Logger) context.Context {
 
 func LoggerFromContext(ctx context.Context) (*zap.Logger, bool) {
 	log, ok := ctx.Value(logger).(*zap.Logger)
-	fmt.Println(log, ok)
 	return log, ok
 }

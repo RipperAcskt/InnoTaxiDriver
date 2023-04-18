@@ -19,11 +19,18 @@ type Server struct {
 	order      *service.OrderService
 	listener   net.Listener
 	grpcServer *grpc.Server
+	log        *zap.Logger
 	cfg        *config.Config
 }
 
-func New(order *service.OrderService, cfg *config.Config) *Server {
-	return &Server{order, nil, nil, cfg}
+func New(order *service.OrderService, log *zap.Logger, cfg *config.Config) *Server {
+	return &Server{
+		order:      order,
+		listener:   nil,
+		grpcServer: &grpc.Server{},
+		log:        log,
+		cfg:        cfg,
+	}
 }
 
 func (s *Server) Run() error {
@@ -48,10 +55,14 @@ func (s *Server) Run() error {
 }
 
 func (s *Server) SyncDriver(c context.Context, params *orderProto.Info) (*orderProto.Info, error) {
-	drivers := make([]*model.Driver, 0)
+	drivers := make([]*model.Driver, 0, len(params.Drivers))
 	for _, driver := range params.Drivers {
+		id, err := uuid.Parse(driver.ID)
+		if err != nil {
+			return nil, fmt.Errorf("parse failed: %w", err)
+		}
 		tmp := &model.Driver{
-			ID: uuid.MustParse(driver.ID),
+			ID: id,
 		}
 		drivers = append(drivers, tmp)
 	}
@@ -75,18 +86,14 @@ func (s *Server) SyncDriver(c context.Context, params *orderProto.Info) (*orderP
 }
 
 func (s *Server) Stop() error {
-	log, err := zap.NewProduction()
-	if err != nil {
-		return fmt.Errorf("new production failed")
-	}
-	log.Info("Shuttig down grpc...")
+	s.log.Info("Shuttig down grpc...")
 
-	err = s.listener.Close()
+	err := s.listener.Close()
 	if err != nil {
 		return fmt.Errorf("listener close failed: %w", err)
 	}
 
 	s.grpcServer.Stop()
-	log.Info("Grpc server exiting.")
+	s.log.Info("Grpc server exiting.")
 	return nil
 }

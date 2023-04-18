@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/RipperAcskt/innotaxi v0.0.0-20230302163551-658b0044e887
+	github.com/RipperAcskt/innotaxiorder v0.0.0-20230411122101-1b7fbda97a0d
 	github.com/go-openapi/errors v0.20.3
 	github.com/go-openapi/loads v0.21.2
 	github.com/go-openapi/runtime v0.25.0
@@ -25,8 +26,6 @@ require (
 )
 
 require (
-	github.com/RipperAcskt/innotaxi v0.0.0-20230302163551-658b0044e887 // indirect
-	github.com/RipperAcskt/innotaxiorder v0.0.0-20230411122101-1b7fbda97a0d // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect

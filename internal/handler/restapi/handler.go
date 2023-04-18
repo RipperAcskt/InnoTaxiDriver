@@ -29,7 +29,7 @@ func (h *Handler) GetProfile(d driver.GetDriverParams) middleware.Responder {
 	log, ok := LoggerFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := driver.GetDriverInternalServerErrorBody{
-			Error: fmt.Errorf("bad access token").Error(),
+			Error: fmt.Errorf("can't get logger").Error(),
 		}
 		return driver.NewGetDriverInternalServerError().WithPayload(&body)
 	}
@@ -37,7 +37,7 @@ func (h *Handler) GetProfile(d driver.GetDriverParams) middleware.Responder {
 	id, ok := IdFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := driver.GetDriverBadRequestBody{
-			Error: fmt.Errorf("bad access token").Error(),
+			Error: fmt.Errorf("can't get id").Error(),
 		}
 		return driver.NewGetDriverBadRequest().WithPayload(&body)
 	}
@@ -71,7 +71,7 @@ func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
 	log, ok := LoggerFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := driver.PutDriverInternalServerErrorBody{
-			Error: fmt.Errorf("bad access token").Error(),
+			Error: fmt.Errorf("can't get logger").Error(),
 		}
 		return driver.NewPutDriverInternalServerError().WithPayload(&body)
 	}
@@ -79,7 +79,7 @@ func (h *Handler) UpdateProfile(d driver.PutDriverParams) middleware.Responder {
 	id, ok := IdFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := driver.PutDriverBadRequestBody{
-			Error: fmt.Errorf("bad access token").Error(),
+			Error: fmt.Errorf("can't get id").Error(),
 		}
 		return driver.NewPutDriverBadRequest().WithPayload(&body)
 	}

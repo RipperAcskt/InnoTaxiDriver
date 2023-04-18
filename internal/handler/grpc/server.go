@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strconv"
 
+	"github.com/RipperAcskt/innotaxi/pkg/proto"
 	"github.com/RipperAcskt/innotaxidriver/config"
 	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
@@ -19,15 +21,17 @@ type Server struct {
 	order      *service.OrderService
 	listener   net.Listener
 	grpcServer *grpc.Server
+	service    *service.Service
 	log        *zap.Logger
 	cfg        *config.Config
 }
 
-func New(order *service.OrderService, log *zap.Logger, cfg *config.Config) *Server {
+func New(order *service.OrderService, s *service.Service, log *zap.Logger, cfg *config.Config) *Server {
 	return &Server{
 		order:      order,
 		listener:   nil,
 		grpcServer: &grpc.Server{},
+		service:    s,
 		log:        log,
 		cfg:        cfg,
 	}
@@ -83,6 +87,11 @@ func (s *Server) SyncDriver(c context.Context, params *orderProto.Info) (*orderP
 		response = append(response, tmp)
 	}
 	return &orderProto.Info{Drivers: response}, nil
+}
+
+func (s *Server) SetRaiting(c context.Context, params *proto.Raiting) (*proto.Empty, error) {
+	err := s.service.SetRaitingById(c, strconv.FormatUint(params.ID, 10), params.Mark)
+	return &proto.Empty{}, err
 }
 
 func (s *Server) Stop() error {

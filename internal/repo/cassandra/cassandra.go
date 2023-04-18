@@ -203,3 +203,13 @@ func (c *Cassandra) CreateUpdateRequest(ids []uuid.UUID) (string, []any) {
 	s += ")"
 	return s, val
 }
+
+func (c *Cassandra) SetRaitingById(ctx context.Context, id string, raiting float32) error {
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	err := c.session.Query("UPDATE users SET raiting = $1 WHERE id = $2", raiting, id).WithContext(queryCtx).Exec()
+	if err != nil {
+		return fmt.Errorf("exec context failed: %w", err)
+	}
+	return nil
+}

@@ -57,16 +57,16 @@ func (c *Cassandra) CreateDriver(ctx context.Context, driver model.Driver) error
 	defer cancel()
 
 	var name string
-	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", driver.PhoneNumber, model.StatusCreated).WithContext(queryCtx).Scan(&name)
+	err := c.session.Query("SELECT name FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", driver.PhoneNumber, model.StatusFree).WithContext(queryCtx).Scan(&name)
 	if err == nil {
 		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrDriverAlreadyExists)
 	}
-	err = c.session.Query("SELECT name FROM innotaxi.drivers WHERE email = ? AND status = ? ALLOW FILTERING", driver.Email, model.StatusCreated).WithContext(queryCtx).Scan(&name)
+	err = c.session.Query("SELECT name FROM innotaxi.drivers WHERE email = ? AND status = ? ALLOW FILTERING", driver.Email, model.StatusFree).WithContext(queryCtx).Scan(&name)
 	if err == nil {
 		return fmt.Errorf("user: %v: %w", driver.Name, service.ErrDriverAlreadyExists)
 	}
 
-	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, taxi_type, status) VALUES(?, ?, ?, ?, ?, 0.0, ?, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), driver.TaxiType, model.StatusCreated).WithContext(queryCtx).Exec()
+	err = c.session.Query("INSERT INTO innotaxi.drivers (id, name, phone_number, email, password, raiting, taxi_type, status) VALUES(?, ?, ?, ?, ?, 0.0, ?, ?)", gocql.UUIDFromTime(time.Now()), driver.Name, driver.PhoneNumber, driver.Email, []byte(driver.Password), driver.TaxiType, model.StatusFree).WithContext(queryCtx).Exec()
 	if err != nil {
 		return fmt.Errorf("exec failed: %w", err)
 	}
@@ -79,7 +79,7 @@ func (c *Cassandra) CheckDriverByPhoneNumber(ctx context.Context, phone_number s
 
 	var driver model.Driver
 	var id gocql.UUID
-	err := c.session.Query("SELECT id, phone_number, password FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", phone_number, model.StatusCreated).WithContext(queryCtx).Scan(&id, &driver.PhoneNumber, &driver.Password)
+	err := c.session.Query("SELECT id, phone_number, password FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", phone_number, model.StatusFree).WithContext(queryCtx).Scan(&id, &driver.PhoneNumber, &driver.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, service.ErrDriverDoesNotExists
@@ -97,7 +97,7 @@ func (c *Cassandra) GetDriverById(ctx context.Context, id string) (*model.Driver
 
 	driver := &model.Driver{}
 	var driverID gocql.UUID
-	err := c.session.Query("SELECT id, name, phone_number, email, raiting FROM innotaxi.drivers WHERE id = ? AND status = ? ALLOW FILTERING", id, model.StatusCreated).WithContext(queryCtx).Scan(&driverID, &driver.Name, &driver.PhoneNumber, &driver.Email, &driver.Raiting)
+	err := c.session.Query("SELECT id, name, phone_number, email, raiting FROM innotaxi.drivers WHERE id = ? AND status = ? ALLOW FILTERING", id, model.StatusFree).WithContext(queryCtx).Scan(&driverID, &driver.Name, &driver.PhoneNumber, &driver.Email, &driver.Raiting)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, service.ErrDriverDoesNotExists
@@ -143,4 +143,63 @@ func (c *Cassandra) DeleteDriverById(ctx context.Context, id string) error {
 		return fmt.Errorf("exec context failed: %w", err)
 	}
 	return nil
+}
+
+func (c *Cassandra) UpdateStatus(ctx context.Context, drivers []*model.Driver) ([]*model.Driver, error) {
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	var toUpdate []uuid.UUID
+	scanner := c.session.Query("SELECT id FROM innotaxi.drivers").WithContext(queryCtx).Iter().Scanner()
+	for scanner.Next() {
+		var driverID gocql.UUID
+		err := scanner.Scan(&driverID)
+		if err != nil {
+			return nil, fmt.Errorf("scan id failed: %w", err)
+		}
+		for _, driver := range drivers {
+			if driver.ID == uuid.UUID(driverID) {
+				toUpdate = append(toUpdate, uuid.UUID(driverID))
+			}
+		}
+
+	}
+
+	query, val := c.CreateUpdateRequest(toUpdate)
+	err := c.session.Query(query, val...).WithContext(queryCtx).Exec()
+	if err != nil {
+		return nil, fmt.Errorf("query context failed: %w", err)
+	}
+
+	drivers = make([]*model.Driver, 0)
+	var driverID gocql.UUID
+	scanner = c.session.Query("SELECT id, name, phone_number, taxi_type, raiting FROM innotaxi.drivers WHERE status = ? ALLOW FILTERING", model.StatusFree).WithContext(queryCtx).Iter().Scanner()
+	for scanner.Next() {
+		driver := &model.Driver{}
+		err := scanner.Scan(&driverID, &driver.Name, &driver.PhoneNumber, &driver.TaxiType, &driver.Raiting)
+		if err != nil {
+			return nil, fmt.Errorf("scan select all failed: %w", err)
+		}
+		driver.ID = uuid.UUID(driverID)
+		drivers = append(drivers, driver)
+	}
+
+	return drivers, err
+}
+
+func (c *Cassandra) CreateUpdateRequest(ids []uuid.UUID) (string, []any) {
+	s := "UPDATE innotaxi.drivers SET status = ? WHERE id in ("
+	var val []any
+	val = append(val, model.StatusBusy)
+	for i, id := range ids {
+		tmp := gocql.UUID(id)
+		val = append(val, tmp)
+		if i == 0 {
+			s += "?"
+			continue
+		}
+		s += ",? "
+	}
+	s += ")"
+	return s, val
 }

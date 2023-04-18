@@ -10,16 +10,19 @@ import (
 type Repo interface {
 	DriverRepo
 	AuthRepo
+	OrderRepo
 }
 
 type Service struct {
 	*AuthService
 	*DriverService
+	Order *OrderService
 }
 
 func New(cassandra Repo, client UserSerivce, cfg *config.Config) *Service {
 	return &Service{
 		AuthService:   NewAuthSevice(cassandra, client, cfg),
 		DriverService: NewDriverService(cassandra, cfg),
+		Order:         NewOrdersList(cassandra),
 	}
 }

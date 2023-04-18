@@ -25,7 +25,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 	log, ok := LoggerFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := auth.PostDriverSingUpInternalServerErrorBody{
-			Error: fmt.Errorf("can't get logger").Error(),
+			Error: fmt.Errorf("get logger failed").Error(),
 		}
 		return auth.NewPostDriverSingUpInternalServerError().WithPayload(&body)
 	}
@@ -55,7 +55,7 @@ func (h *Handler) SingUp(d auth.PostDriverSingUpParams) middleware.Responder {
 	}
 
 	body := auth.PostDriverSingUpCreatedBody{
-		Status: model.StatusCreated,
+		Status: "created",
 	}
 	return auth.NewPostDriverSingUpCreated().WithPayload(&body)
 }
@@ -64,7 +64,7 @@ func (h *Handler) SingIn(d auth.PostDriverSingInParams) middleware.Responder {
 	log, ok := LoggerFromContext(d.HTTPRequest.Context())
 	if !ok {
 		body := auth.PostDriverSingInInternalServerErrorBody{
-			Error: fmt.Errorf("can't get logger").Error(),
+			Error: fmt.Errorf("get logger failed").Error(),
 		}
 		return auth.NewPostDriverSingInInternalServerError().WithPayload(&body)
 	}
@@ -99,12 +99,11 @@ func (h *Handler) SingIn(d auth.PostDriverSingInParams) middleware.Responder {
 
 func (h *Handler) VerifyToken(handler http.Handler) http.Handler {
 	resp := make(map[string]string)
-
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		log, ok := LoggerFromContext(r.Context())
 		if !ok {
 			rw.WriteHeader(http.StatusInternalServerError)
-			_, err := rw.Write([]byte(fmt.Errorf("can't get logger").Error()))
+			_, err := rw.Write([]byte(fmt.Errorf("get logger failed").Error()))
 			if err != nil {
 				log.Error("verify", zap.Error(fmt.Errorf("write  failed: %w", err)))
 			}
@@ -236,7 +235,7 @@ func (h *Handler) Refresh(token auth.PostDriverRefreshParams) middleware.Respond
 	log, ok := LoggerFromContext(token.HTTPRequest.Context())
 	if !ok {
 		body := auth.PostDriverRefreshInternalServerErrorBody{
-			Error: fmt.Errorf("can't get logger").Error(),
+			Error: fmt.Errorf("get logger failed").Error(),
 		}
 		return auth.NewPostDriverRefreshInternalServerError().WithPayload(&body)
 	}

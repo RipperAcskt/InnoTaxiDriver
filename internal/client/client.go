@@ -12,7 +12,7 @@ import (
 )
 
 type User struct {
-	client pb.AuthServiceClient
+	client pb.UserServiceClient
 	conn   *grpc.ClientConn
 	cfg    *config.Config
 }
@@ -33,7 +33,7 @@ func New(cfg *config.Config) (*User, error) {
 		return nil, fmt.Errorf("dial failed: %w", err)
 	}
 
-	client := pb.NewAuthServiceClient(conn)
+	client := pb.NewUserServiceClient(conn)
 
 	return &User{client, conn, cfg}, nil
 }

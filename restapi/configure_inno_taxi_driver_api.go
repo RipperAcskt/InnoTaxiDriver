@@ -99,7 +99,7 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 
 	api.ServerShutdown = func() {}
 
-	grpcServer := grpc.New(service.Order, log, cfg)
+	grpcServer := grpc.New(service.Order, service, log, cfg)
 	go func() {
 		if err := grpcServer.Run(); err != nil {
 			log.Error(fmt.Sprintf("grpc server run failed: %v", err))

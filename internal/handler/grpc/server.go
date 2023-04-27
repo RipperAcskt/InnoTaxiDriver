@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/RipperAcskt/innotaxi/pkg/proto"
 	"github.com/RipperAcskt/innotaxidriver/config"
 	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
-	orderProto "github.com/RipperAcskt/innotaxiorder/pkg/proto"
 	"github.com/google/uuid"
 
 	"go.uber.org/zap"
@@ -19,15 +19,17 @@ type Server struct {
 	order      *service.OrderService
 	listener   net.Listener
 	grpcServer *grpc.Server
+	service    *service.Service
 	log        *zap.Logger
 	cfg        *config.Config
 }
 
-func New(order *service.OrderService, log *zap.Logger, cfg *config.Config) *Server {
+func New(order *service.OrderService, s *service.Service, log *zap.Logger, cfg *config.Config) *Server {
 	return &Server{
 		order:      order,
 		listener:   nil,
 		grpcServer: &grpc.Server{},
+		service:    s,
 		log:        log,
 		cfg:        cfg,
 	}
@@ -45,7 +47,7 @@ func (s *Server) Run() error {
 
 	s.listener = listener
 	s.grpcServer = grpcServer
-	orderProto.RegisterOrderServiceServer(grpcServer, s)
+	proto.RegisterDriverServiceServer(grpcServer, s)
 	err = grpcServer.Serve(listener)
 	if err != nil {
 		return fmt.Errorf("serve failed: %w", err)
@@ -54,7 +56,7 @@ func (s *Server) Run() error {
 	return nil
 }
 
-func (s *Server) SyncDriver(c context.Context, params *orderProto.Info) (*orderProto.Info, error) {
+func (s *Server) SyncDriver(c context.Context, params *proto.Info) (*proto.Info, error) {
 	drivers := make([]*model.Driver, 0, len(params.Drivers))
 	for _, driver := range params.Drivers {
 		id, err := uuid.Parse(driver.ID)
@@ -71,9 +73,9 @@ func (s *Server) SyncDriver(c context.Context, params *orderProto.Info) (*orderP
 		return nil, fmt.Errorf("find driver failed: %w", err)
 	}
 
-	response := make([]*orderProto.Driver, 0)
+	response := make([]*proto.Driver, 0)
 	for _, driver := range newDrivers {
-		tmp := &orderProto.Driver{
+		tmp := &proto.Driver{
 			ID:          driver.ID.String(),
 			Name:        driver.Name,
 			PhoneNumber: driver.PhoneNumber,
@@ -82,7 +84,12 @@ func (s *Server) SyncDriver(c context.Context, params *orderProto.Info) (*orderP
 		}
 		response = append(response, tmp)
 	}
-	return &orderProto.Info{Drivers: response}, nil
+	return &proto.Info{Drivers: response}, nil
+}
+
+func (s *Server) SetRaiting(c context.Context, params *proto.Raiting) (*proto.Empty, error) {
+	err := s.service.SetRaitingById(c, params.ID, params.Mark)
+	return &proto.Empty{}, err
 }
 
 func (s *Server) Stop() error {

@@ -79,7 +79,7 @@ func (c *Cassandra) CheckDriverByPhoneNumber(ctx context.Context, phone_number s
 
 	var driver model.Driver
 	var id gocql.UUID
-	err := c.session.Query("SELECT id, phone_number, password FROM innotaxi.drivers WHERE phone_number = ? AND status = ? ALLOW FILTERING", phone_number, model.StatusFree).WithContext(queryCtx).Scan(&id, &driver.PhoneNumber, &driver.Password)
+	err := c.session.Query("SELECT id, phone_number, password FROM innotaxi.drivers WHERE phone_number = ? ALLOW FILTERING", phone_number).WithContext(queryCtx).Scan(&id, &driver.PhoneNumber, &driver.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, service.ErrDriverDoesNotExists
@@ -202,4 +202,25 @@ func (c *Cassandra) CreateUpdateRequest(ids []uuid.UUID) (string, []any) {
 	}
 	s += ")"
 	return s, val
+}
+
+func (c *Cassandra) SetRaitingById(ctx context.Context, id string, raiting int64) error {
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	var oldRating float32
+	err := c.session.Query("SELECT raiting FROM innotaxi.drivers WHERE id = ? ALLOW FILTERING", id).WithContext(queryCtx).Scan(&oldRating)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return service.ErrDriverDoesNotExists
+		}
+		return fmt.Errorf("query row context failed: %w", err)
+	}
+
+	newRating := (oldRating + float32(raiting)) / 2
+	err = c.session.Query("UPDATE innotaxi.drivers SET raiting = ? WHERE id = ?", newRating, id).WithContext(queryCtx).Exec()
+	if err != nil {
+		return fmt.Errorf("exec context failed: %w", err)
+	}
+	return nil
 }

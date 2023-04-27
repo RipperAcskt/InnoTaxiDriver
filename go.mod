@@ -3,8 +3,7 @@ module github.com/RipperAcskt/innotaxidriver
 go 1.19
 
 require (
-	github.com/RipperAcskt/innotaxi v0.0.0-20230302163551-658b0044e887
-	github.com/RipperAcskt/innotaxiorder v0.0.0-20230411122101-1b7fbda97a0d
+	github.com/RipperAcskt/innotaxi v0.0.0-20230420094616-84e8bed9591e
 	github.com/go-openapi/errors v0.20.3
 	github.com/go-openapi/loads v0.21.2
 	github.com/go-openapi/runtime v0.25.0

@@ -119,6 +119,8 @@ github.com/RipperAcskt/innotaxi v0.0.0-20230419114149-da46840e3582 h1:gbMQ1pUPT2
 github.com/RipperAcskt/innotaxi v0.0.0-20230419114149-da46840e3582/go.mod h1:/VjaUeqCNibOQVKz8ryrQYxtOPRinjfc65z2pA7hZXI=
 github.com/RipperAcskt/innotaxi v0.0.0-20230420094616-84e8bed9591e h1:xFZDfXQ/csq9tSPf6+B/2NxzA2t3ZGn6ZxwpJ5c+gzw=
 github.com/RipperAcskt/innotaxi v0.0.0-20230420094616-84e8bed9591e/go.mod h1:/VjaUeqCNibOQVKz8ryrQYxtOPRinjfc65z2pA7hZXI=
+github.com/RipperAcskt/innotaxi v0.0.0-20230510120836-4fa90b195416 h1:kE8M36ZZgAn2S6q25udH5z9BDTjhaTu2nj1f+M9GTkw=
+github.com/RipperAcskt/innotaxi v0.0.0-20230510120836-4fa90b195416/go.mod h1:/VjaUeqCNibOQVKz8ryrQYxtOPRinjfc65z2pA7hZXI=
 github.com/Shopify/logrus-bugsnag v0.0.0-20171204204709-577dee27f20d/go.mod h1:HI8ITrYtUY+O+ZhtlqUnD8+KwNPOyugEhfP9fdUIaEQ=
 github.com/ajstarks/svgo v0.0.0-20180226025133-644b8db467af/go.mod h1:K08gAheRH3/J6wwsYMMT4xOr94bZjxIelGM0+d/wbFw=
 github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc/go.mod h1:LOuyumcjzFXgccqObfd/Ljyb9UuFJ6TxHnclSeseNhc=

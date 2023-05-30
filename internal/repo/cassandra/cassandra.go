@@ -204,7 +204,7 @@ func (c *Cassandra) CreateUpdateRequest(ids []uuid.UUID) (string, []any) {
 	return s, val
 }
 
-func (c *Cassandra) SetRaitingById(ctx context.Context, id string, raiting int64) error {
+func (c *Cassandra) SetRaitingById(ctx context.Context, id string, raiting float32) error {
 	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
@@ -223,4 +223,25 @@ func (c *Cassandra) SetRaitingById(ctx context.Context, id string, raiting int64
 		return fmt.Errorf("exec context failed: %w", err)
 	}
 	return nil
+}
+
+func (c *Cassandra) GetRating(ctx context.Context) ([]model.Driver, error) {
+	queryCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	scanner := c.session.Query("SELECT id, raiting FROM innotaxi.drivers").WithContext(queryCtx).Iter().Scanner()
+
+	var drivers []model.Driver
+	for scanner.Next() {
+		var driverID gocql.UUID
+		var driver model.Driver
+		err := scanner.Scan(&driverID, &driver.Raiting)
+		if err != nil {
+			return nil, fmt.Errorf("scan id failed: %w", err)
+		}
+
+		driver.ID = uuid.UUID(driverID)
+		drivers = append(drivers, driver)
+	}
+	return drivers, nil
 }

@@ -19,9 +19,9 @@ type Service struct {
 	Order *OrderService
 }
 
-func New(cassandra Repo, client UserSerivce, cfg *config.Config) *Service {
+func New(cassandra Repo, broker Broker, client UserSerivce, cfg *config.Config) *Service {
 	return &Service{
-		AuthService:   NewAuthSevice(cassandra, client, cfg),
+		AuthService:   NewAuthSevice(cassandra, broker, client, cfg),
 		DriverService: NewDriverService(cassandra, cfg),
 		Order:         NewOrdersList(cassandra),
 	}

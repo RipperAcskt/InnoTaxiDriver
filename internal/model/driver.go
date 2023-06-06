@@ -14,6 +14,6 @@ type Driver struct {
 	PhoneNumber string
 	Email       string
 	Password    string
-	Raiting     float32
+	Rating      float32
 	TaxiType    string
 }

@@ -3,7 +3,7 @@ module github.com/RipperAcskt/innotaxidriver
 go 1.19
 
 require (
-	github.com/RipperAcskt/innotaxi v0.0.0-20230530110643-60bf4532df56
+	github.com/RipperAcskt/innotaxi v0.0.0-20230606091002-b99277ce3b33
 	github.com/go-openapi/errors v0.20.3
 	github.com/go-openapi/loads v0.21.2
 	github.com/go-openapi/runtime v0.25.0
@@ -18,6 +18,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.3.0
 	github.com/jessevdk/go-flags v1.5.0
+	github.com/segmentio/kafka-go v0.4.40
 	github.com/spf13/viper v1.15.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.8.0
@@ -38,12 +39,14 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
+	github.com/klauspost/compress v1.15.9 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

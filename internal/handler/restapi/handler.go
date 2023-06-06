@@ -62,7 +62,7 @@ func (h *Handler) GetProfile(d driver.GetDriverParams) middleware.Responder {
 		ID:      fmt.Sprint(dr.ID),
 		Name:    dr.Name,
 		Email:   dr.Email,
-		Raiting: float64(dr.Raiting),
+		Raiting: float64(dr.Rating),
 	}
 	return driver.NewGetDriverOK().WithPayload(&body)
 }

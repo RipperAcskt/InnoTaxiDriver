@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
+	"github.com/RipperAcskt/innotaxidriver/internal/broker"
 	user "github.com/RipperAcskt/innotaxidriver/internal/client"
 	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
@@ -53,7 +54,7 @@ func TestSingUp(t *testing.T) {
 			}
 
 			service := service.Service{
-				AuthService: service.NewAuthSevice(f.authRepo, f.userService, &config.Config{}),
+				AuthService: service.NewAuthSevice(f.authRepo, &broker.Broker{}, f.userService, &config.Config{}),
 			}
 
 			tmpPass := tt.user.Password
@@ -118,7 +119,7 @@ func TestSingIn(t *testing.T) {
 				authRepo:    mocks.NewMockAuthRepo(ctrl),
 				userService: mocks.NewMockUserSerivce(ctrl),
 			}
-			authService := service.NewAuthSevice(f.authRepo, f.userService, &config.Config{})
+			authService := service.NewAuthSevice(f.authRepo, &broker.Broker{}, f.userService, &config.Config{})
 
 			tt.mockBehavior(f.authRepo, tt.user.PhoneNumber)
 
@@ -160,7 +161,7 @@ func TestGenerateHash(t *testing.T) {
 				authRepo:    mocks.NewMockAuthRepo(ctrl),
 				userService: mocks.NewMockUserSerivce(ctrl),
 			}
-			authService := service.NewAuthSevice(f.authRepo, f.userService, &config.Config{})
+			authService := service.NewAuthSevice(f.authRepo, &broker.Broker{}, f.userService, &config.Config{})
 
 			service := service.Service{
 				AuthService: authService,

@@ -33,12 +33,17 @@ type UserSerivce interface {
 
 type AuthService struct {
 	AuthRepo
-	user UserSerivce
-	cfg  *config.Config
+	broker Broker
+	user   UserSerivce
+	cfg    *config.Config
 }
 
-func NewAuthSevice(cassandra AuthRepo, user UserSerivce, cfg *config.Config) *AuthService {
-	return &AuthService{cassandra, user, cfg}
+type Broker interface {
+	Write(user model.Driver) error
+}
+
+func NewAuthSevice(cassandra AuthRepo, broker Broker, user UserSerivce, cfg *config.Config) *AuthService {
+	return &AuthService{cassandra, broker, user, cfg}
 }
 
 func (s *AuthService) SingUp(ctx context.Context, driver model.Driver) error {
@@ -52,6 +57,26 @@ func (s *AuthService) SingUp(ctx context.Context, driver model.Driver) error {
 	if err != nil {
 		return err
 	}
+
+	d, err := s.CheckDriverByPhoneNumber(ctx, driver.PhoneNumber)
+	if err != nil {
+		return fmt.Errorf("check driver by phone number failed: %w", err)
+	}
+
+	u := model.Driver{
+		ID:          d.ID,
+		Name:        driver.Name,
+		PhoneNumber: driver.PhoneNumber,
+		Email:       driver.Email,
+		Rating:      0.0,
+		TaxiType:    driver.TaxiType,
+	}
+
+	err = s.broker.Write(u)
+	if err != nil {
+		return fmt.Errorf("broker write failed: %w", err)
+	}
+
 	return nil
 }
 

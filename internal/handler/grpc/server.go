@@ -80,31 +80,16 @@ func (s *Server) SyncDriver(c context.Context, params *proto.Info) (*proto.Info,
 			Name:        driver.Name,
 			PhoneNumber: driver.PhoneNumber,
 			TaxiType:    driver.TaxiType,
-			Raiting:     driver.Raiting,
+			Rating:      driver.Rating,
 		}
 		response = append(response, tmp)
 	}
 	return &proto.Info{Drivers: response}, nil
 }
 
-func (s *Server) SetRaiting(c context.Context, params *proto.Rating) (*proto.Empty, error) {
-	err := s.service.SetRaitingById(c, params.ID, params.Mark)
+func (s *Server) SetRating(c context.Context, params *proto.Rating) (*proto.Empty, error) {
+	err := s.service.SetRating(c, params.ID, params.Mark)
 	return &proto.Empty{}, err
-}
-
-func (s *Server) GetRaiting(c context.Context, empty *proto.Empty) (*proto.RatingArray, error) {
-	drivers, err := s.service.GetRaiting(c)
-
-	var ratings proto.RatingArray
-	for _, driver := range drivers {
-		rating := &proto.Rating{
-			ID:   driver.ID.String(),
-			Mark: driver.Raiting,
-		}
-		ratings.Rating = append(ratings.Rating, rating)
-	}
-
-	return &ratings, err
 }
 
 func (s *Server) Stop() error {

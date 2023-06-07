@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
+	"github.com/RipperAcskt/innotaxidriver/internal/broker"
 	user "github.com/RipperAcskt/innotaxidriver/internal/client"
 	"github.com/RipperAcskt/innotaxidriver/internal/handler/grpc"
 	handler "github.com/RipperAcskt/innotaxidriver/internal/handler/restapi"
@@ -59,7 +60,12 @@ func configureAPI(api *operations.InnoTaxiDriverAPIAPI) http.Handler {
 		log.Sugar().Fatalf("grpc new failed: %v", err)
 	}
 
-	service := service.New(cassandra, client, cfg)
+	broker, err := broker.New(cfg)
+	if err != nil {
+		log.Sugar().Fatalf("broker new failed: %w", err)
+	}
+
+	service := service.New(cassandra, broker, client, cfg)
 	handler := handler.New(service, cfg)
 
 	api.AuthPostDriverSingUpHandler = auth.PostDriverSingUpHandlerFunc(handler.SingUp)

@@ -6,19 +6,22 @@ import (
 	"testing"
 
 	"github.com/RipperAcskt/innotaxidriver/config"
+	"github.com/RipperAcskt/innotaxidriver/internal/broker"
 	user "github.com/RipperAcskt/innotaxidriver/internal/client"
 	"github.com/RipperAcskt/innotaxidriver/internal/model"
 	"github.com/RipperAcskt/innotaxidriver/internal/service"
 	"github.com/RipperAcskt/innotaxidriver/internal/service/mocks"
 	"github.com/go-playground/assert/v2"
 	"github.com/golang/mock/gomock"
+	"github.com/google/uuid"
 )
 
 func TestSingUp(t *testing.T) {
-	type mockBehavior func(s *mocks.MockAuthRepo, user model.Driver)
+	type mockBehavior func(s *mocks.MockAuthRepo, user model.Driver, b *mocks.MockBroker)
 	type fileds struct {
 		authRepo    *mocks.MockAuthRepo
 		userService *mocks.MockUserSerivce
+		broker      *mocks.MockBroker
 	}
 	test := []struct {
 		name         string
@@ -35,8 +38,16 @@ func TestSingUp(t *testing.T) {
 				Password:    "12345",
 				TaxiType:    "econom",
 			},
-			mockBehavior: func(s *mocks.MockAuthRepo, user model.Driver) {
+			mockBehavior: func(s *mocks.MockAuthRepo, user model.Driver, b *mocks.MockBroker) {
 				s.EXPECT().CreateDriver(context.Background(), user).Return(nil)
+				s.EXPECT().CheckDriverByPhoneNumber(context.Background(), "+7455456").Return(&model.Driver{ID: uuid.MustParse("eba0d15e-c710-4c08-af1d-dedbcf5ad6ca")}, nil)
+				b.EXPECT().Write(model.Driver{
+					ID:          uuid.MustParse("eba0d15e-c710-4c08-af1d-dedbcf5ad6ca"),
+					Name:        "Ivan",
+					PhoneNumber: "+7455456",
+					Email:       "ripper@algsdh",
+					TaxiType:    "econom",
+				}).Return(nil)
 			},
 			err: nil,
 		},
@@ -50,15 +61,16 @@ func TestSingUp(t *testing.T) {
 			f := fileds{
 				authRepo:    mocks.NewMockAuthRepo(ctrl),
 				userService: mocks.NewMockUserSerivce(ctrl),
+				broker:      mocks.NewMockBroker(ctrl),
 			}
 
 			service := service.Service{
-				AuthService: service.NewAuthSevice(f.authRepo, f.userService, &config.Config{}),
+				AuthService: service.NewAuthSevice(f.authRepo, f.broker, f.userService, &config.Config{}),
 			}
 
 			tmpPass := tt.user.Password
 			tt.user.Password, _ = service.GenerateHash(tt.user.Password)
-			tt.mockBehavior(f.authRepo, tt.user)
+			tt.mockBehavior(f.authRepo, tt.user, f.broker)
 
 			tt.user.Password = tmpPass
 			err := service.SingUp(context.Background(), tt.user)
@@ -118,7 +130,7 @@ func TestSingIn(t *testing.T) {
 				authRepo:    mocks.NewMockAuthRepo(ctrl),
 				userService: mocks.NewMockUserSerivce(ctrl),
 			}
-			authService := service.NewAuthSevice(f.authRepo, f.userService, &config.Config{})
+			authService := service.NewAuthSevice(f.authRepo, &broker.Broker{}, f.userService, &config.Config{})
 
 			tt.mockBehavior(f.authRepo, tt.user.PhoneNumber)
 
@@ -160,7 +172,7 @@ func TestGenerateHash(t *testing.T) {
 				authRepo:    mocks.NewMockAuthRepo(ctrl),
 				userService: mocks.NewMockUserSerivce(ctrl),
 			}
-			authService := service.NewAuthSevice(f.authRepo, f.userService, &config.Config{})
+			authService := service.NewAuthSevice(f.authRepo, &broker.Broker{}, f.userService, &config.Config{})
 
 			service := service.Service{
 				AuthService: authService,

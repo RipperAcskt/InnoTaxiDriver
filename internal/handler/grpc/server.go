@@ -88,8 +88,23 @@ func (s *Server) SyncDriver(c context.Context, params *proto.Info) (*proto.Info,
 }
 
 func (s *Server) SetRating(c context.Context, params *proto.Rating) (*proto.Empty, error) {
-	err := s.service.SetRating(c, params.ID, params.Mark)
+	err := s.service.SetRatingById(c, params.ID, params.Mark)
 	return &proto.Empty{}, err
+}
+
+func (s *Server) GetRating(c context.Context, empty *proto.Empty) (*proto.RatingArray, error) {
+	drivers, err := s.service.GetRaiting(c)
+
+	var ratings proto.RatingArray
+	for _, driver := range drivers {
+		rating := &proto.Rating{
+			ID:   driver.ID.String(),
+			Mark: driver.Rating,
+		}
+		ratings.Rating = append(ratings.Rating, rating)
+	}
+
+	return &ratings, err
 }
 
 func (s *Server) Stop() error {

@@ -64,18 +64,33 @@ func (mr *MockDriverRepoMockRecorder) GetDriverById(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDriverById", reflect.TypeOf((*MockDriverRepo)(nil).GetDriverById), arg0, arg1)
 }
 
-// SetRaitingById mocks base method.
-func (m *MockDriverRepo) SetRaitingById(arg0 context.Context, arg1 string, arg2 int64) error {
+// GetRating mocks base method.
+func (m *MockDriverRepo) GetRating(arg0 context.Context) ([]model.Driver, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SetRaitingById", arg0, arg1, arg2)
+	ret := m.ctrl.Call(m, "GetRating", arg0)
+	ret0, _ := ret[0].([]model.Driver)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRating indicates an expected call of GetRating.
+func (mr *MockDriverRepoMockRecorder) GetRating(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRating", reflect.TypeOf((*MockDriverRepo)(nil).GetRating), arg0)
+}
+
+// SetRatingById mocks base method.
+func (m *MockDriverRepo) SetRatingById(arg0 context.Context, arg1 string, arg2 float32) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetRatingById", arg0, arg1, arg2)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SetRaitingById indicates an expected call of SetRaitingById.
-func (mr *MockDriverRepoMockRecorder) SetRaitingById(arg0, arg1, arg2 interface{}) *gomock.Call {
+// SetRatingById indicates an expected call of SetRatingById.
+func (mr *MockDriverRepoMockRecorder) SetRatingById(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRaitingById", reflect.TypeOf((*MockDriverRepo)(nil).SetRaitingById), arg0, arg1, arg2)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRatingById", reflect.TypeOf((*MockDriverRepo)(nil).SetRatingById), arg0, arg1, arg2)
 }
 
 // UpdateDriverById mocks base method.

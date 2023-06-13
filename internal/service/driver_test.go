@@ -26,7 +26,7 @@ func TestGetProfile(t *testing.T) {
 					Name:        "2",
 					PhoneNumber: "2",
 					Email:       "2",
-					Raiting:     0,
+					Rating:      0,
 				}, nil)
 			},
 			err: nil,

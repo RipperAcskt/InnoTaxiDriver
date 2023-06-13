@@ -80,15 +80,15 @@ func (s *Server) SyncDriver(c context.Context, params *proto.Info) (*proto.Info,
 			Name:        driver.Name,
 			PhoneNumber: driver.PhoneNumber,
 			TaxiType:    driver.TaxiType,
-			Raiting:     driver.Raiting,
+			Rating:      driver.Rating,
 		}
 		response = append(response, tmp)
 	}
 	return &proto.Info{Drivers: response}, nil
 }
 
-func (s *Server) SetRaiting(c context.Context, params *proto.Raiting) (*proto.Empty, error) {
-	err := s.service.SetRaitingById(c, params.ID, params.Mark)
+func (s *Server) SetRating(c context.Context, params *proto.Rating) (*proto.Empty, error) {
+	err := s.service.SetRatingById(c, params.ID, params.Mark)
 	return &proto.Empty{}, err
 }
 
